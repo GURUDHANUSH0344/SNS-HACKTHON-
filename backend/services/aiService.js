@@ -596,6 +596,7 @@ async function generateInstitutionalReport(filters = {}) {
 }
 
 module.exports = {
+  callGemini,
   chatAssistant,
   facultyAssistant,
   predictPerformance,

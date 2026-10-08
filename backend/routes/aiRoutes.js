@@ -48,4 +48,8 @@ router.get('/operations-hub', requireAuth, aiController.getHackathonDemo);
 router.get('/hub', requireAuth, (req, res) => res.redirect('/ai/operations-hub'));
 router.get('/hackathon-demo', requireAuth, aiController.getHackathonDemo);
 
+// AI Code Lab
+const codeLabController = require('../controllers/codeLabController');
+router.get('/code-lab', requireAuth, codeLabController.renderCodeLab);
+
 module.exports = router;

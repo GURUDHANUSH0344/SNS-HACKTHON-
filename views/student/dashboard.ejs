@@ -271,6 +271,35 @@
             </div>
           </div>
 
+          <!-- AI Code Lab Card (Requirement 38) -->
+          <div class="card" style="background: linear-gradient(135deg, #0F2747 0%, #1E4E8C 100%); color: #FFFFFF; border: none; border-radius: var(--radius-card); padding: 1.35rem; box-shadow: var(--shadow-sm); margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <div style="width: 38px; height: 38px; background: rgba(255, 255, 255, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                  💻
+                </div>
+                <div>
+                  <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #FFFFFF;">AI CODE LAB</h3>
+                  <span style="font-size: 0.72rem; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.04em;">Write. Run. Learn. Improve.</span>
+                </div>
+              </div>
+              <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: #FFFFFF; font-size: 0.7rem; font-weight: 600;">
+                <%= typeof codeSessionCount !== 'undefined' ? codeSessionCount : 0 %> Sessions
+              </span>
+            </div>
+
+            <p style="font-size: 0.8125rem; color: #E2E8F0; line-height: 1.45; margin-bottom: 1rem;">
+              Write, run, understand and improve code with CampusAI. Ask for algorithms in natural language, execute code securely, and debug with AI assistance.
+            </p>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="font-size: 0.75rem; color: #CBD5E1;">Python • C • C++ • Java • JS</span>
+              <a href="/ai/code-lab" class="btn btn-sm btn-light" style="font-weight: 700; color: #0F2747; border-radius: 6px; padding: 0.35rem 0.8rem;">
+                Open Code Lab →
+              </a>
+            </div>
+          </div>
+
           <!-- Quick Study Tools Navigation -->
           <div class="card">
             <h3 class="card-title" style="font-size: 0.9375rem; margin-bottom: 0.85rem;">Student Academic Tools</h3>

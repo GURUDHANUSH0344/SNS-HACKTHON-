@@ -9,7 +9,8 @@ const {
   SmartNotification,
   StudentGamification,
   Subject,
-  Announcement
+  Announcement,
+  CodeSession
 } = require('../models');
 const { Op } = require('sequelize');
 const aiService = require('../services/aiService');
@@ -104,6 +105,14 @@ exports.getDashboard = async (req, res) => {
       limit: 3
     });
 
+    // 10. AI Code Lab Sessions
+    let codeSessionCount = 0;
+    try {
+      if (req.user?.id && CodeSession) {
+        codeSessionCount = await CodeSession.count({ where: { user_id: req.user.id } });
+      }
+    } catch (e) {}
+
     res.render('student/dashboard', {
       pageTitle: 'Student Portal Dashboard — CAMPUS AI',
       student,
@@ -121,6 +130,7 @@ exports.getDashboard = async (req, res) => {
       notifications,
       aiPrediction,
       announcements,
+      codeSessionCount,
       user: req.user
     });
   } catch (err) {

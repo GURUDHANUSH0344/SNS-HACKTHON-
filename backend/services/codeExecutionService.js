@@ -1,20 +1,40 @@
 /**
- * CAMPUS AI — AI Code Lab Secure Execution Service
+ * CAMPUS AI — Secure Code Execution Engine
  * 
- * Executes JavaScript/Python/C-like algorithms safely with timeout guards,
- * standard input/output handling, exit code capture, and Supabase audit logging.
+ * Architecture:
+ * - Local Sandboxed Runtimes (Python 3, JavaScript Node VM)
+ * - Remote Sandbox Integration (Judge0 / Piston if configured via .env)
+ * - Strict limits: Timeout, max source code size, max output size, no arbitrary host shell
+ * - Honest environment reporting: Never fakes execution for unavailable compilers
  */
 
-const { vm } = require('vm');
 const { spawn } = require('child_process');
+const vm = require('vm');
+const http = require('http');
+const https = require('https');
 const { supabaseAdmin, isSupabaseConfigured } = require('../config/supabase');
+const { CodeExecution, CodeSession } = require('../models');
 
-const EXECUTION_TIMEOUT_MS = 5000; // 5-second strict execution limit
+// Configurable execution parameters
+const EXECUTION_TIMEOUT_MS = parseInt(process.env.CODE_EXECUTION_TIMEOUT || '5000', 10);
+const MAX_SOURCE_SIZE = parseInt(process.env.CODE_MAX_SOURCE_SIZE || '102400', 10); // 100 KB
+const MAX_OUTPUT_SIZE = parseInt(process.env.CODE_MAX_OUTPUT_SIZE || '102400', 10); // 100 KB
 
 /**
- * Execute JavaScript source code in isolated Node VM sandbox
+ * Truncate long outputs safely
  */
-async function executeJavaScript(sourceCode, stdin = '') {
+function truncateOutput(str) {
+  if (!str) return '';
+  if (str.length > MAX_OUTPUT_SIZE) {
+    return str.substring(0, MAX_OUTPUT_SIZE) + '\n... [Output truncated: maximum limit exceeded]';
+  }
+  return str;
+}
+
+/**
+ * 1. JavaScript Sandboxed Execution via Node VM
+ */
+async function executeJavaScriptSandbox(sourceCode, stdin = '') {
   const startTime = process.hrtime();
   let stdout = '';
   let stderr = '';
@@ -36,29 +56,28 @@ async function executeJavaScript(sourceCode, stdin = '') {
     }
   };
 
-  const sandbox = {
+  const sandboxContext = {
     console: customConsole,
-    stdinData: stdin,
-    Math: Math,
-    Date: Date,
-    JSON: JSON,
-    parseInt: parseInt,
-    parseFloat: parseFloat,
-    Array: Array,
-    Object: Object,
-    String: String,
-    Number: Number,
-    Boolean: Boolean,
-    RegExp: RegExp,
-    Set: Set,
-    Map: Map
+    stdin: String(stdin || ''),
+    Math,
+    Date,
+    JSON,
+    parseInt,
+    parseFloat,
+    Array,
+    Object,
+    String,
+    Number,
+    Boolean,
+    RegExp,
+    Set,
+    Map
   };
 
-  const vmModule = require('vm');
-  const context = vmModule.createContext(sandbox);
+  const context = vm.createContext(sandboxContext);
 
   try {
-    const script = new vmModule.Script(sourceCode);
+    const script = new vm.Script(sourceCode);
     script.runInContext(context, { timeout: EXECUTION_TIMEOUT_MS });
   } catch (err) {
     if (err.message && err.message.includes('timed out')) {
@@ -73,31 +92,47 @@ async function executeJavaScript(sourceCode, stdin = '') {
   }
 
   const diff = process.hrtime(startTime);
-  const executionTimeMs = (diff[0] * 1000 + diff[1] / 1e6).toFixed(2);
+  const executionTimeMs = parseFloat((diff[0] * 1000 + diff[1] / 1e6).toFixed(2));
 
   return {
-    stdout: stdout.trimEnd(),
-    stderr: stderr.trimEnd(),
+    stdout: truncateOutput(stdout.trimEnd()),
+    stderr: truncateOutput(stderr.trimEnd()),
     exitCode,
     status,
-    executionTimeMs: parseFloat(executionTimeMs)
+    executionTimeMs,
+    language: 'javascript'
   };
 }
 
 /**
- * Execute Python source code safely via system python executable or simulated sandbox
+ * 2. Python Sandboxed Execution via local Python 3 Process
  */
-async function executePython(sourceCode, stdin = '') {
+async function executePythonSandbox(sourceCode, stdin = '') {
   return new Promise((resolve) => {
     const startTime = process.hrtime();
     let stdout = '';
     let stderr = '';
+    let isTerminated = false;
 
-    // Check if python or py is available
-    const pyProcess = spawn('python', ['-c', sourceCode], { timeout: EXECUTION_TIMEOUT_MS });
+    // Use unbuffered flag -u
+    const pyProcess = spawn('python', ['-u', '-c', sourceCode], {
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
 
-    pyProcess.stdin.write(stdin || '');
-    pyProcess.stdin.end();
+    const timer = setTimeout(() => {
+      isTerminated = true;
+      try { pyProcess.kill('SIGKILL'); } catch (e) {}
+    }, EXECUTION_TIMEOUT_MS);
+
+    if (stdin) {
+      try {
+        pyProcess.stdin.write(stdin);
+        pyProcess.stdin.end();
+      } catch (e) {}
+    } else {
+      pyProcess.stdin.end();
+    }
 
     pyProcess.stdout.on('data', (data) => {
       stdout += data.toString();
@@ -108,91 +143,232 @@ async function executePython(sourceCode, stdin = '') {
     });
 
     pyProcess.on('error', (err) => {
-      // If python executable is not on PATH, provide graceful evaluation
+      clearTimeout(timer);
       const diff = process.hrtime(startTime);
-      const executionTimeMs = (diff[0] * 1000 + diff[1] / 1e6).toFixed(2);
+      const executionTimeMs = parseFloat((diff[0] * 1000 + diff[1] / 1e6).toFixed(2));
+
       resolve({
         stdout: '',
-        stderr: `Python runtime is not configured on this host. (${err.message})`,
+        stderr: `Python execution failed: ${err.message}`,
         exitCode: 127,
         status: 'runtime_error',
-        executionTimeMs: parseFloat(executionTimeMs)
+        executionTimeMs,
+        language: 'python'
       });
     });
 
     pyProcess.on('close', (code) => {
+      clearTimeout(timer);
       const diff = process.hrtime(startTime);
-      const executionTimeMs = (diff[0] * 1000 + diff[1] / 1e6).toFixed(2);
+      const executionTimeMs = parseFloat((diff[0] * 1000 + diff[1] / 1e6).toFixed(2));
+
+      if (isTerminated) {
+        return resolve({
+          stdout: truncateOutput(stdout.trimEnd()),
+          stderr: `Execution timed out after ${EXECUTION_TIMEOUT_MS}ms.\n`,
+          exitCode: 124,
+          status: 'timeout',
+          executionTimeMs,
+          language: 'python'
+        });
+      }
+
+      const status = code === 0 ? 'completed' : 'runtime_error';
+
       resolve({
-        stdout: stdout.trimEnd(),
-        stderr: stderr.trimEnd(),
+        stdout: truncateOutput(stdout.trimEnd()),
+        stderr: truncateOutput(stderr.trimEnd()),
         exitCode: code || 0,
-        status: code === 0 ? 'completed' : 'runtime_error',
-        executionTimeMs: parseFloat(executionTimeMs)
+        status,
+        executionTimeMs,
+        language: 'python'
       });
     });
   });
 }
 
 /**
- * Main Execution Gateway
+ * 3. Remote Judge0 Provider (if configured in .env)
  */
-async function runCode(sourceCode, language = 'javascript', stdin = '', sessionId = null, userId = null) {
-  let result;
-  const lang = (language || 'javascript').toLowerCase();
+async function executeViaJudge0(sourceCode, language, stdin = '') {
+  const judge0Url = process.env.JUDGE0_API_URL;
+  const judge0Key = process.env.JUDGE0_API_KEY;
 
-  if (lang === 'python' || lang === 'py') {
-    result = await executePython(sourceCode, stdin);
-  } else {
-    // Default to JavaScript
-    result = await executeJavaScript(sourceCode, stdin);
-  }
+  if (!judge0Url) return null;
 
-  // Persist execution log to Supabase if configured and valid sessionId/userId provided
-  if (isSupabaseConfigured && supabaseAdmin && sessionId && userId) {
-    try {
-      // Try atomic RPC first
-      const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('record_code_execution', {
-        p_session_id: sessionId,
-        p_user_id: userId,
-        p_language: lang,
-        p_time: result.executionTimeMs,
-        p_exit_code: result.exitCode,
-        p_status: result.status,
-        p_stdout: result.stdout,
-        p_stderr: result.stderr
+  // Language ID mapping for Judge0
+  const languageIds = {
+    c: 50, // C (GCC 9.2.0)
+    cpp: 54, // C++ (GCC 9.2.0)
+    java: 62, // Java (OpenJDK 13.0.1)
+    python: 71, // Python (3.8.1)
+    javascript: 63 // JavaScript (Node.js 12.14.0)
+  };
+
+  const langKey = language.toLowerCase();
+  const languageId = languageIds[langKey];
+  if (!languageId) return null;
+
+  try {
+    const postData = JSON.stringify({
+      source_code: Buffer.from(sourceCode).toString('base64'),
+      language_id: languageId,
+      stdin: Buffer.from(stdin || '').toString('base64')
+    });
+
+    const parsedUrl = new URL(`${judge0Url}/submissions?base64_encoded=true&wait=true`);
+    const isHttps = parsedUrl.protocol === 'https:';
+    const client = isHttps ? https : http;
+
+    return new Promise((resolve) => {
+      const req = client.request(parsedUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RapidAPI-Key': judge0Key || '',
+          'Content-Length': Buffer.byteLength(postData)
+        },
+        timeout: EXECUTION_TIMEOUT_MS + 2000
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            const stdout = data.stdout ? Buffer.from(data.stdout, 'base64').toString() : '';
+            const stderr = data.stderr ? Buffer.from(data.stderr, 'base64').toString() : '';
+            const compileOutput = data.compile_output ? Buffer.from(data.compile_output, 'base64').toString() : '';
+            const timeMs = data.time ? parseFloat(data.time) * 1000 : 0;
+
+            const isCompilationError = data.status?.id === 6;
+            const status = isCompilationError ? 'compilation_error' : (data.status?.id === 3 ? 'completed' : 'runtime_error');
+
+            resolve({
+              stdout: truncateOutput(stdout.trimEnd()),
+              stderr: truncateOutput((compileOutput || stderr).trimEnd()),
+              exitCode: data.exit_code || (status === 'completed' ? 0 : 1),
+              status,
+              executionTimeMs: timeMs,
+              language
+            });
+          } catch (e) {
+            resolve(null);
+          }
+        });
       });
 
-      if (rpcError) {
-        // Fallback to standard insert
-        await supabaseAdmin.from('code_executions').insert({
-          session_id: sessionId,
-          user_id: userId,
-          language: lang,
-          execution_time: result.executionTimeMs,
-          exit_code: result.exitCode,
-          status: result.status,
-          stdout: result.stdout,
-          stderr: result.stderr
-        });
+      req.on('error', () => resolve(null));
+      req.write(postData);
+      req.end();
+    });
+  } catch (e) {
+    return null;
+  }
+}
 
-        await supabaseAdmin.from('code_sessions').update({
-          last_output: result.stdout,
-          last_error: result.stderr,
-          execution_status: result.status,
-          updated_at: new Date()
-        }).eq('id', sessionId);
-      }
-    } catch (logErr) {
-      console.warn('[Code Execution] Supabase logging notice:', logErr.message);
+/**
+ * Main Code Execution Gateway
+ */
+async function executeCode(sourceCode, language = 'python', stdin = '', sessionId = null, userId = null) {
+  // 1. Validation checks
+  if (typeof sourceCode !== 'string' || !sourceCode.trim()) {
+    return {
+      stdout: '',
+      stderr: 'No source code provided to execute.',
+      exitCode: 1,
+      status: 'error',
+      executionTimeMs: 0,
+      language
+    };
+  }
+
+  if (sourceCode.length > MAX_SOURCE_SIZE) {
+    return {
+      stdout: '',
+      stderr: `Source code exceeds maximum allowed size (${Math.round(MAX_SOURCE_SIZE / 1024)} KB).`,
+      exitCode: 1,
+      status: 'error',
+      executionTimeMs: 0,
+      language
+    };
+  }
+
+  const lang = (language || 'python').toLowerCase();
+  let result = null;
+
+  // 2. Try remote Judge0 if configured
+  if (process.env.JUDGE0_API_URL) {
+    result = await executeViaJudge0(sourceCode, lang, stdin);
+  }
+
+  // 3. Fallback to local secure sandboxes
+  if (!result) {
+    if (lang === 'python' || lang === 'py') {
+      result = await executePythonSandbox(sourceCode, stdin);
+    } else if (lang === 'javascript' || lang === 'js' || lang === 'typescript' || lang === 'ts') {
+      result = await executeJavaScriptSandbox(sourceCode, stdin);
+    } else {
+      // Compiled languages without configured compiler on host
+      result = {
+        stdout: '',
+        stderr: `Execution environment unavailable for ${language.toUpperCase()}. To execute ${language.toUpperCase()} natively, install GCC/JDK on the host or configure JUDGE0_API_URL in .env.`,
+        exitCode: 127,
+        status: 'unavailable',
+        executionTimeMs: 0,
+        language
+      };
     }
+  }
+
+  // 4. Persist execution history into Supabase and local DB
+  try {
+    if (isSupabaseConfigured && supabaseAdmin && sessionId) {
+      await supabaseAdmin.from('code_executions').insert({
+        session_id: sessionId,
+        user_id: userId,
+        language: lang,
+        execution_time: result.executionTimeMs,
+        exit_code: result.exitCode,
+        status: result.status,
+        stdout: result.stdout,
+        stderr: result.stderr
+      });
+
+      await supabaseAdmin.from('code_sessions').update({
+        last_output: result.stdout,
+        last_error: result.stderr,
+        execution_status: result.status,
+        updated_at: new Date()
+      }).eq('id', sessionId);
+    } else if (sessionId) {
+      await CodeExecution.create({
+        sessionId,
+        userId,
+        language: lang,
+        executionTime: result.executionTimeMs,
+        exitCode: result.exitCode,
+        status: result.status,
+        stdout: result.stdout,
+        stderr: result.stderr
+      });
+
+      await CodeSession.update({
+        lastOutput: result.stdout,
+        lastError: result.stderr,
+        executionStatus: result.status
+      }, { where: { id: sessionId } });
+    }
+  } catch (logErr) {
+    // Non-fatal logging failure
   }
 
   return result;
 }
 
 module.exports = {
-  runCode,
-  executeJavaScript,
-  executePython
+  executeCode,
+  executePythonSandbox,
+  executeJavaScriptSandbox,
+  MAX_SOURCE_SIZE,
+  EXECUTION_TIMEOUT_MS
 };

@@ -33,6 +33,11 @@ const ResourceMaintenance = require('./ResourceMaintenance');
 const ResourceRecommendation = require('./ResourceRecommendation');
 const ResourceAllocationLog = require('./ResourceAllocationLog');
 const ResourceSimulation = require('./ResourceSimulation');
+const CodeSession = require('./CodeSession');
+const CodeExecution = require('./CodeExecution');
+const CodeTestCase = require('./CodeTestCase');
+const CodeAIAnalysis = require('./CodeAIAnalysis');
+const CodeSearchHistory = require('./CodeSearchHistory');
 
 // User <-> Student (Optional 1:1 linkage)
 User.hasOne(Student, { foreignKey: 'userId', as: 'studentProfile', onDelete: 'CASCADE' });
@@ -130,6 +135,22 @@ Resource.hasMany(ResourceAllocationLog, { foreignKey: 'resourceId', as: 'allocat
 ResourceAllocationLog.belongsTo(Resource, { foreignKey: 'resourceId', as: 'resource' });
 ResourceAllocationLog.belongsTo(Resource, { foreignKey: 'previousResourceId', as: 'previousResource' });
 
+// Code Lab Associations
+CodeSession.hasMany(CodeExecution, { foreignKey: 'sessionId', as: 'executions', onDelete: 'CASCADE' });
+CodeExecution.belongsTo(CodeSession, { foreignKey: 'sessionId', as: 'session' });
+
+CodeSession.hasMany(CodeTestCase, { foreignKey: 'sessionId', as: 'testCases', onDelete: 'CASCADE' });
+CodeTestCase.belongsTo(CodeSession, { foreignKey: 'sessionId', as: 'session' });
+
+CodeSession.hasMany(CodeAIAnalysis, { foreignKey: 'sessionId', as: 'aiAnalyses', onDelete: 'CASCADE' });
+CodeAIAnalysis.belongsTo(CodeSession, { foreignKey: 'sessionId', as: 'session' });
+
+User.hasMany(CodeSession, { foreignKey: 'userId', as: 'codeSessions', onDelete: 'CASCADE' });
+CodeSession.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+User.hasMany(CodeSearchHistory, { foreignKey: 'userId', as: 'searchHistories', onDelete: 'CASCADE' });
+CodeSearchHistory.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -164,6 +185,11 @@ module.exports = {
   ResourceMaintenance,
   ResourceRecommendation,
   ResourceAllocationLog,
-  ResourceSimulation
+  ResourceSimulation,
+  CodeSession,
+  CodeExecution,
+  CodeTestCase,
+  CodeAIAnalysis,
+  CodeSearchHistory
 };
 

@@ -1,4 +1,5 @@
 <%- include('../partials/head') %>
+<link rel="stylesheet" href="/css/code-lab.css">
 
 <div class="app-layout">
   <%- include('../partials/sidebar') %>
@@ -7,143 +8,341 @@
     <%- include('../partials/navbar') %>
 
     <main class="content-container">
-      <!-- Code Lab Header Banner -->
-      <div class="page-header-card mb-4" style="background: linear-gradient(135deg, #0F2747 0%, #1E4E8C 100%); color: #FFFFFF; padding: 1.5rem 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(15, 39, 71, 0.08);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem;">
-              <span style="font-size: 1.75rem;">💻</span>
-              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">AI Code Lab & Algorithmic Sandbox</h1>
-              <span style="background: rgba(255,255,255,0.2); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">Supabase Cloud Persistence</span>
+      <div class="codelab-container">
+        
+        <!-- 1. Header Banner -->
+        <div class="codelab-banner">
+          <div class="codelab-banner-left">
+            <div class="codelab-icon-box">💻</div>
+            <div>
+              <div class="codelab-title-row">
+                <h1 class="codelab-title">AI Code Lab</h1>
+                <span class="codelab-tagline-badge">Write. Run. Learn. Improve.</span>
+              </div>
+              <p class="codelab-subtitle">
+                An AI-powered programming environment where students can ask for code, understand concepts, execute securely, debug errors, and improve.
+              </p>
             </div>
-            <p style="margin: 0; color: #CBD5E1; font-size: 0.875rem;">
-              Write, test, and optimize algorithmic programs with server-side sandboxing and AI architectural feedback.
-            </p>
           </div>
 
-          <div style="display: flex; gap: 0.75rem;">
-            <button class="btn btn-light btn-sm" onclick="createNewSession()" title="Create New Session">
+          <div style="display: flex; gap: 0.6rem; align-items: center;">
+            <button class="codelab-action-btn" onclick="window.location.href='/ai/code-lab'" title="Start Fresh Session">
               <span>+ New Session</span>
             </button>
-            <button class="btn btn-outline-light btn-sm" onclick="saveCurrentSession()" id="saveSessionBtn" title="Save Session to Supabase Cloud">
-              <span>💾 Save Cloud Draft</span>
+            <button class="codelab-action-btn primary" id="saveSessionBtn" title="Save session to cloud">
+              <span>💾 Save</span>
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Workspace Grid: Editor Left, Execution & AI Right -->
-      <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.5rem; align-items: start;">
-        
-        <!-- Left Column: Code Editor & Controls -->
-        <div class="card p-0" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-          
-          <!-- Toolbar -->
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <input 
-                type="text" 
-                id="sessionTitleInput" 
-                value="<%= activeSession ? activeSession.title : 'Two Sum Algorithm' %>" 
-                style="border: 1px solid transparent; background: transparent; font-weight: 600; font-size: 0.95rem; color: #172033; padding: 0.2rem 0.4rem; border-radius: 4px;"
-                onfocus="this.style.borderColor='#CBD5E1'; this.style.background='#FFFFFF';"
-                onblur="this.style.borderColor='transparent'; this.style.background='transparent';"
-              />
-              <select id="codeLanguageSelect" class="form-select form-select-sm" style="width: auto; font-size: 0.8125rem; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid #CBD5E1;">
-                <option value="javascript">JavaScript (Node.js VM)</option>
-                <option value="python">Python 3</option>
+        <!-- 2. AI Code Search & Generator Box (Secondary Feature) -->
+        <div class="codelab-search-card">
+          <div class="codelab-search-header">
+            <div class="codelab-search-label">
+              <span>🔍 What do you want to code?</span>
+              <span style="font-weight: 400; font-size: 0.8rem; color: #64748B;">(Ask. Generate. Understand. Run.)</span>
+            </div>
+            
+            <div class="codelab-search-controls">
+              <!-- Mode Selection: Learn Mode vs Direct Solution -->
+              <div class="codelab-mode-switch" title="Educational Mode">
+                <button type="button" class="codelab-mode-btn active" data-mode="learn">Learn Mode</button>
+                <button type="button" class="codelab-mode-btn" data-mode="direct">Direct Solution</button>
+              </div>
+
+              <!-- Difficulty Selection -->
+              <select id="codeDifficultySelect" class="codelab-select-pill" title="Target Skill Level">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
               </select>
             </div>
+          </div>
 
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="btn btn-primary btn-sm" id="runCodeBtn" onclick="executeCurrentCode()">
-                <span>▶ Run Code</span>
-              </button>
+          <div class="codelab-search-input-group">
+            <input 
+              type="text" 
+              id="aiSearchInput" 
+              class="codelab-search-input" 
+              placeholder="Ask for a program, algorithm, function, or coding concept... (e.g., 'Find the second largest number in an array')"
+            />
+
+            <select id="searchLanguageSelect" class="codelab-select-pill" onchange="document.getElementById('codeLanguageSelect').value = this.value; document.getElementById('codeLanguageSelect').dispatchEvent(new Event('change'));">
+              <option value="python">Python</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+              <option value="java">Java</option>
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="sql">SQL</option>
+              <option value="html">HTML</option>
+              <option value="css">CSS</option>
+            </select>
+
+            <button type="button" id="aiGenerateCodeBtn" class="codelab-btn-generate">
+              <span>⚡ Generate Code</span>
+            </button>
+          </div>
+
+          <% if (recentSearches && recentSearches.length > 0) { %>
+            <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span style="font-size: 0.75rem; color: #64748B; font-weight: 600;">Recent:</span>
+              <% recentSearches.forEach(function(s) { %>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-light" 
+                  style="font-size: 0.75rem; padding: 0.15rem 0.5rem; border: 1px solid #E2E8F0; border-radius: 999px;"
+                  onclick="document.getElementById('aiSearchInput').value = '<%= s.query.replace(/'/g, "\\'") %>'; document.getElementById('searchLanguageSelect').value = '<%= s.language %>'; document.getElementById('codeLanguageSelect').value = '<%= s.language %>'; triggerCodeGeneration();"
+                >
+                  <%= s.query %> (<%= s.language.toUpperCase() %>)
+                </button>
+              <% }); %>
             </div>
-          </div>
-
-          <!-- Editor Textarea -->
-          <div style="position: relative;">
-            <textarea 
-              id="codeEditor" 
-              rows="18" 
-              spellcheck="false" 
-              style="width: 100%; border: none; outline: none; padding: 1rem 1.25rem; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.875rem; line-height: 1.5; color: #0F172A; background: #FAFAFA; resize: vertical;"
-            ><%= activeSession ? activeSession.source_code : defaultTemplate %></textarea>
-          </div>
-
-          <!-- Standard Input Stdin Section -->
-          <div style="padding: 0.75rem 1.25rem; background: #F8FAFC; border-top: 1px solid #E2E8F0;">
-            <label style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #64748B; margin-bottom: 0.25rem; display: block;">Custom Standard Input (stdin)</label>
-            <textarea id="stdinInput" rows="2" style="width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 0.4rem 0.6rem; font-family: monospace; font-size: 0.8125rem; outline: none;" placeholder="Optional inputs for standard input..."><%= activeSession ? activeSession.stdin : '' %></textarea>
-          </div>
+          <% } %>
         </div>
 
-        <!-- Right Column: Results, AI Intelligence & Test Cases -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- 3. Main IDE Workspace Grid -->
+        <div class="codelab-ide-grid">
           
-          <!-- Output Console Card -->
-          <div class="card p-0" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
-              <span style="font-weight: 600; font-size: 0.8125rem; color: #475569; display: flex; align-items: center; gap: 0.5rem;">
-                <span>📟 Terminal Output</span>
-                <span id="execStatusBadge" class="badge" style="background: #E2E8F0; color: #475569; font-size: 0.7rem;">Idle</span>
-              </span>
-              <span id="execMetricsText" style="font-size: 0.75rem; color: #64748B;">-- ms</span>
-            </div>
-            <div style="background: #0F172A; color: #E2E8F0; padding: 1rem; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.8125rem; min-height: 150px; max-height: 240px; overflow-y: auto; white-space: pre-wrap;" id="outputConsoleArea">
-// Execution output will appear here...
-            </div>
-          </div>
+          <!-- Left Column: Dark Code Editor Panel -->
+          <div class="codelab-editor-panel">
+            
+            <!-- Editor Toolbar -->
+            <div class="codelab-editor-toolbar">
+              <div class="codelab-editor-title-box">
+                <input 
+                  type="text" 
+                  id="codelabSessionTitle" 
+                  class="codelab-session-title" 
+                  value="<%= activeSession ? activeSession.title : 'Algorithmic Program' %>" 
+                  placeholder="Session Title"
+                />
+                
+                <select id="codeLanguageSelect" class="codelab-select-pill" style="height: 32px; padding: 0 0.5rem; background: #333333; color: #E2E8F0; border-color: #444444; font-size: 0.75rem;">
+                  <option value="python" <%= (activeSession && activeSession.language === 'python') ? 'selected' : '' %>>Python (Isolated)</option>
+                  <option value="javascript" <%= (activeSession && activeSession.language === 'javascript') ? 'selected' : '' %>>JavaScript (Node VM)</option>
+                  <option value="c" <%= (activeSession && activeSession.language === 'c') ? 'selected' : '' %>>C</option>
+                  <option value="cpp" <%= (activeSession && activeSession.language === 'cpp') ? 'selected' : '' %>>C++</option>
+                  <option value="java" <%= (activeSession && activeSession.language === 'java') ? 'selected' : '' %>>Java</option>
+                  <option value="typescript" <%= (activeSession && activeSession.language === 'typescript') ? 'selected' : '' %>>TypeScript</option>
+                  <option value="sql" <%= (activeSession && activeSession.language === 'sql') ? 'selected' : '' %>>SQL</option>
+                  <option value="html" <%= (activeSession && activeSession.language === 'html') ? 'selected' : '' %>>HTML</option>
+                  <option value="css" <%= (activeSession && activeSession.language === 'css') ? 'selected' : '' %>>CSS</option>
+                </select>
+              </div>
 
-          <!-- AI Code Intelligence Card -->
-          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-              <h3 style="font-size: 0.95rem; font-weight: 700; color: #0F2747; margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                <span>🧠 Gemini Code Intelligence</span>
-              </h3>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin-bottom: 0.8rem;">
-              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('explain')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
-                📖 Explain
-              </button>
-              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('optimize')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
-                ⚡ Optimize
-              </button>
-              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('debug')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
-                🐛 Debug
-              </button>
-              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('complexity')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
-                📊 Big-O
-              </button>
-            </div>
-
-            <div id="aiAnalysisResultArea" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0.9rem; font-size: 0.8125rem; color: #334155; line-height: 1.5; min-height: 100px; max-height: 250px; overflow-y: auto; white-space: pre-wrap;">
-Select an AI action above to inspect algorithmic structure, runtime performance, or detect potential corner-case bugs.
-            </div>
-          </div>
-
-          <!-- Test Cases Card -->
-          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-              <h3 style="font-size: 0.95rem; font-weight: 700; color: #0F2747; margin: 0;">
-                <span>🧪 Automated Test Suite</span>
-              </h3>
-              <button class="btn btn-sm btn-outline-primary" onclick="runAutomatedTests()" style="font-size: 0.75rem;">Run Suite</button>
-            </div>
-            <div id="testSuiteResultsList" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8125rem;">
-              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 0.5rem 0.75rem;">
-                <div style="display: flex; justify-content: space-between; color: #475569; font-weight: 600;">
-                  <span>Case 1: Standard Input</span>
-                  <span class="badge bg-secondary" style="font-size: 0.65rem;">Ready</span>
-                </div>
-                <div style="color: #64748B; font-size: 0.75rem; margin-top: 0.2rem;">Validates nominal runtime execution path without errors.</div>
+              <!-- Toolbar Action Buttons -->
+              <div class="codelab-editor-actions">
+                <button type="button" id="runCodeBtn" class="codelab-action-btn primary" title="Execute Code in Sandbox (Ctrl+Enter)">
+                  <span>▶ Run</span>
+                </button>
+                <button type="button" id="stopCodeBtn" class="codelab-action-btn" title="Stop execution">
+                  <span>■ Stop</span>
+                </button>
+                <button type="button" id="resetCodeBtn" class="codelab-action-btn" title="Reset to starter template">
+                  <span>↺ Reset</span>
+                </button>
+                <button type="button" id="downloadCodeBtn" class="codelab-action-btn" title="Download Source File">
+                  <span>⬇ Download</span>
+                </button>
               </div>
             </div>
+
+            <!-- Monaco Editor Mount Point -->
+            <div id="monacoEditorMount" class="codelab-monaco-mount"></div>
+
+            <!-- Fallback Plain Textarea for offline/CDN load failure -->
+            <textarea id="fallbackCodeEditor" class="codelab-fallback-editor" style="display: none;"><%= activeSession ? activeSession.source_code : starterTemplates.python %></textarea>
           </div>
 
+          <!-- Right Column: Output, Input, Tests, & AI Assistant -->
+          <div class="codelab-aux-panel">
+            
+            <!-- Output / Input / Tests Console Tabs -->
+            <div class="codelab-output-card">
+              <div class="codelab-tab-bar">
+                <button type="button" class="codelab-tab-btn active" data-tab="output" onclick="switchTab('output')">
+                  <span>📟 Output</span>
+                </button>
+                <button type="button" class="codelab-tab-btn" data-tab="input" onclick="switchTab('input')">
+                  <span>⌨️ Input (stdin)</span>
+                </button>
+                <button type="button" class="codelab-tab-btn" data-tab="tests" onclick="switchTab('tests')">
+                  <span>🧪 Test Cases</span>
+                </button>
+                <button type="button" class="codelab-tab-btn" data-tab="errors" onclick="switchTab('errors')">
+                  <span>❌ Errors</span>
+                </button>
+              </div>
+
+              <div class="codelab-tab-content">
+                
+                <!-- Tab Pane 1: Terminal Output -->
+                <div id="tabPane_output" class="codelab-tab-pane">
+                  <div id="terminalStatusBanner" class="codelab-status-banner running" style="display: flex;">
+                    <span>Ready</span>
+                    <span id="terminalTimeBadge" style="font-family: monospace;">-- ms</span>
+                  </div>
+                  <pre id="terminalOutputConsole" class="codelab-terminal-view">// Output will appear here upon clicking Run...</pre>
+                </div>
+
+                <!-- Tab Pane 2: stdin Input -->
+                <div id="tabPane_input" class="codelab-tab-pane" style="display: none;">
+                  <label style="font-size: 0.75rem; font-weight: 600; color: #64748B; margin-bottom: 0.4rem; display: block;">
+                    STANDARD INPUT (STDIN) — Passed to program during execution:
+                  </label>
+                  <textarea 
+                    id="stdinTextarea" 
+                    rows="8" 
+                    class="form-control" 
+                    style="font-family: monospace; font-size: 0.8125rem; width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 0.6rem;"
+                    placeholder="Enter input for your program here (e.g. integer, multi-line data)..."
+                  ><%= activeSession ? (activeSession.stdin || '') : '' %></textarea>
+                </div>
+
+                <!-- Tab Pane 3: Automated Test Cases -->
+                <div id="tabPane_tests" class="codelab-tab-pane" style="display: none;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #0F2747;">Generated Test Suite</span>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                      <span id="testsSummaryBadge" class="badge" style="display: none; font-size: 0.75rem;"></span>
+                      <button type="button" class="btn btn-sm btn-primary" id="btnRunAllTests" onclick="runAllTests()" style="font-size: 0.75rem;">
+                        <span>▶ Run All Tests</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style="overflow-x: auto;">
+                    <table class="codelab-test-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Input</th>
+                          <th>Expected</th>
+                          <th>Actual</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="testCasesTableBody">
+                        <tr>
+                          <td colspan="5" style="text-align: center; color: #64748B; font-family: sans-serif;">
+                            No test cases loaded. Click "Generate Tests" in the AI Assistant below.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Tab Pane 4: Errors & Diagnostics -->
+                <div id="tabPane_errors" class="codelab-tab-pane" style="display: none;">
+                  <div id="errorOutputContainer">
+                    <div style="color: #64748B; font-size: 0.8125rem; text-align: center; padding: 1.5rem;">
+                      No compilation or runtime errors reported.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- CampusAI Coding Assistant Panel -->
+            <div class="codelab-ai-card">
+              <div class="codelab-ai-header">
+                <h3 class="codelab-ai-title">
+                  <span>🧠 CampusAI Coding Assistant</span>
+                </h3>
+                <span style="font-size: 0.7rem; color: #1E4E8C; font-weight: 600; background: #EFF6FF; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                  Active AI Tutor
+                </span>
+              </div>
+
+              <!-- AI Actions Grid -->
+              <div class="codelab-ai-action-grid">
+                <button type="button" id="aiExplainBtn" class="codelab-ai-btn" title="Explain algorithm and concepts">
+                  <span>📖 Explain</span>
+                </button>
+                <button type="button" id="aiDebugBtn" class="codelab-ai-btn" title="Diagnose errors and show diff">
+                  <span>🐛 Debug</span>
+                </button>
+                <button type="button" id="aiOptimizeBtn" class="codelab-ai-btn" title="Analyze and optimize Big-O">
+                  <span>⚡ Optimize</span>
+                </button>
+                <button type="button" id="aiTestsBtn" class="codelab-ai-btn" title="Generate automated test cases">
+                  <span>🧪 Tests</span>
+                </button>
+                <button type="button" id="aiHintBtn" class="codelab-ai-btn" title="Progressive conceptual hints">
+                  <span>💡 Hint</span>
+                </button>
+                <button type="button" id="aiConvertBtn" class="codelab-ai-btn" title="Translate code to another language">
+                  <span>🔄 Convert</span>
+                </button>
+              </div>
+
+              <!-- AI Response Text Area -->
+              <div id="aiAssistantOutput" class="codelab-ai-output-area">
+Welcome to CampusAI Code Lab. Select an AI action above, or ask a question below about your active code.
+              </div>
+
+              <!-- Follow-Up Tutor Chat Input -->
+              <div class="codelab-tutor-box">
+                <input 
+                  type="text" 
+                  id="tutorFollowUpInput" 
+                  class="codelab-tutor-input" 
+                  placeholder="Ask a follow-up question (e.g. 'Explain this loop', 'Show another approach')..." 
+                />
+                <button type="button" class="btn btn-sm btn-primary" onclick="handleTutorQuestion()" style="font-size: 0.75rem; white-space: nowrap;">
+                  Ask Tutor
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
+
+        <!-- 4. Saved Sessions / History Section (MY CODE) -->
+        <div class="card p-4" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <h2 style="font-size: 1.1rem; font-weight: 700; color: #0F2747; margin: 0;">My Saved Sessions</h2>
+              <p style="margin: 0; font-size: 0.8rem; color: #64748B;">Access and reopen your previous coding environments.</p>
+            </div>
+            <span class="badge" style="background: #EFF6FF; color: #1E4E8C;"><%= sessions.length %> Sessions Stored</span>
+          </div>
+
+          <% if (sessions && sessions.length > 0) { %>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+              <% sessions.forEach(function(s) { %>
+                <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 1rem; background: #F8FAFC; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+                      <h4 style="font-size: 0.9rem; font-weight: 700; color: #172033; margin: 0;"><%= s.title %></h4>
+                      <span class="badge" style="background: #E2E8F0; color: #475569; font-size: 0.7rem; text-transform: uppercase;"><%= s.language %></span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748B; margin-top: 0.35rem;">
+                      Status: <span style="font-weight: 600;"><%= s.execution_status || 'saved' %></span>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+                    <a href="/ai/code-lab?session=<%= s.id %>" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                      Open Session
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="deleteSession('<%= s.id %>')">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div style="text-align: center; padding: 2rem; color: #64748B; font-size: 0.875rem;">
+              No saved sessions yet. Write your code and click "Save" to keep your work in the cloud.
+            </div>
+          <% } %>
+        </div>
+
       </div>
     </main>
 
@@ -151,176 +350,244 @@ Select an AI action above to inspect algorithmic structure, runtime performance,
   </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MODALS -->
+<!-- ========================================== -->
+
+<!-- 1. AI Generated Solution Modal -->
+<div id="solutionResultModal" class="codelab-modal-overlay" style="display: none;">
+  <div class="codelab-modal-card" style="max-width: 780px;">
+    <div class="codelab-modal-header">
+      <div>
+        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0F2747;">Generated Solution</h3>
+        <div style="display: flex; gap: 0.4rem; margin-top: 0.25rem;">
+          <span id="solModalLangBadge" class="badge" style="background: #1E4E8C; color: #FFFFFF; font-size: 0.7rem;">C</span>
+          <span id="solModalModeBadge" class="badge" style="background: #EFF6FF; color: #1E4E8C; font-size: 0.7rem;">LEARN MODE</span>
+        </div>
+      </div>
+      <button type="button" class="btn-close" onclick="closeSolutionModal()" style="border: none; background: transparent; font-size: 1.25rem; cursor: pointer;">✕</button>
+    </div>
+
+    <div class="codelab-modal-body">
+      <!-- Code Block -->
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">Source Code</label>
+        <pre id="solModalCodeBlock" style="background: #0F172A; color: #E2E8F0; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.8125rem; max-height: 240px; overflow-y: auto; white-space: pre-wrap; margin-top: 0.25rem;"></pre>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <button type="button" class="btn btn-sm btn-primary" onclick="insertGeneratedCode()">
+          Insert into Editor
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('solModalCodeBlock').textContent); showToast('Code copied to clipboard!', 'success');">
+          Copy Code
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="downloadCodeFile()">
+          Download
+        </button>
+      </div>
+
+      <!-- Educational Breakdown -->
+      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem;">
+        <div>
+          <strong style="color: #0F2747;">Approach:</strong>
+          <p id="solModalApproach" style="margin: 0.25rem 0 0 0; color: #334155;"></p>
+        </div>
+        <div>
+          <strong style="color: #0F2747;">Explanation:</strong>
+          <p id="solModalExplanation" style="margin: 0.25rem 0 0 0; color: #334155; line-height: 1.5;"></p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <strong style="color: #0F2747;">Example Input:</strong>
+            <pre id="solModalExampleInput" style="background: #FFFFFF; border: 1px solid #E2E8F0; padding: 0.4rem; border-radius: 4px; margin: 0.25rem 0 0 0;"></pre>
+          </div>
+          <div>
+            <strong style="color: #0F2747;">Example Output:</strong>
+            <pre id="solModalExampleOutput" style="background: #FFFFFF; border: 1px solid #E2E8F0; padding: 0.4rem; border-radius: 4px; margin: 0.25rem 0 0 0;"></pre>
+          </div>
+        </div>
+        <div>
+          <strong style="color: #0F2747;">Complexity:</strong>
+          <p id="solModalComplexity" style="margin: 0.25rem 0 0 0; font-family: monospace; font-weight: 600; color: #1E4E8C;"></p>
+        </div>
+        <div>
+          <strong style="color: #0F2747;">Edge Cases:</strong>
+          <ul id="solModalEdgeCases" style="margin: 0.25rem 0 0 1.25rem; padding: 0; color: #475569;"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="codelab-modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" onclick="closeSolutionModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Insert Conflict Warning Modal -->
+<div id="insertConflictModal" class="codelab-modal-overlay" style="display: none;">
+  <div class="codelab-modal-card" style="max-width: 480px;">
+    <div class="codelab-modal-header">
+      <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #B45309;">⚠️ Unsaved Changes in Editor</h3>
+      <button type="button" class="btn-close" onclick="document.getElementById('insertConflictModal').style.display='none'" style="border: none; background: transparent; font-size: 1.25rem;">✕</button>
+    </div>
+    <div class="codelab-modal-body" style="font-size: 0.875rem; color: #334155;">
+      <p style="margin: 0 0 0.5rem 0;">Your current code has unsaved modifications.</p>
+      <p style="margin: 0; color: #64748B;">Would you like to replace the existing editor contents entirely, or insert the generated code below?</p>
+    </div>
+    <div class="codelab-modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" id="btnConflictCancel">Cancel</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="btnConflictAppend">Insert Below</button>
+      <button type="button" class="btn btn-sm btn-danger" id="btnConflictReplace">Replace Existing</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. AI Debug Diff Modal -->
+<div id="debugDiffModal" class="codelab-modal-overlay" style="display: none;">
+  <div class="codelab-modal-card" style="max-width: 680px;">
+    <div class="codelab-modal-header">
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #B91C1C;">🐛 AI Bug Diagnosis & Proposed Fix</h3>
+      <button type="button" class="btn-close" onclick="closeDebugModal()" style="border: none; background: transparent; font-size: 1.25rem;">✕</button>
+    </div>
+    <div class="codelab-modal-body" style="font-size: 0.8125rem;">
+      <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem;">
+        <div>
+          <strong style="color: #991B1B;">What Failed:</strong>
+          <div id="debugWhatFailed" style="color: #1E293B; margin-top: 0.2rem;"></div>
+        </div>
+        <div>
+          <strong style="color: #991B1B;">Why It Failed:</strong>
+          <div id="debugWhyFailed" style="color: #1E293B; margin-top: 0.2rem;"></div>
+        </div>
+        <div>
+          <strong style="color: #991B1B;">Where It Failed:</strong>
+          <div id="debugWhereFailed" style="color: #1E293B; margin-top: 0.2rem; font-family: monospace;"></div>
+        </div>
+        <div>
+          <strong style="color: #15803D;">How to Fix:</strong>
+          <div id="debugHowToFix" style="color: #1E293B; margin-top: 0.2rem;"></div>
+        </div>
+      </div>
+
+      <label style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">Suggested Fixed Code</label>
+      <pre id="debugSuggestedCode" style="background: #0F172A; color: #E2E8F0; padding: 0.85rem; border-radius: 6px; font-family: monospace; font-size: 0.8rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; margin-top: 0.25rem;"></pre>
+    </div>
+    <div class="codelab-modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" onclick="closeDebugModal()">Dismiss</button>
+      <button type="button" class="btn btn-sm btn-success" id="btnApplyDebugFix">Apply Fix to Editor</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. AI Optimization Modal -->
+<div id="optimizeDiffModal" class="codelab-modal-overlay" style="display: none;">
+  <div class="codelab-modal-card" style="max-width: 680px;">
+    <div class="codelab-modal-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0F2747;">⚡ Algorithmic Optimization</h3>
+        <span id="optComplexityBadge" class="badge" style="background: #DCFCE7; color: #166534; font-size: 0.75rem;">O(n²) ➔ O(n log n)</span>
+      </div>
+      <button type="button" class="btn-close" onclick="closeOptimizeModal()" style="border: none; background: transparent; font-size: 1.25rem;">✕</button>
+    </div>
+    <div class="codelab-modal-body" style="font-size: 0.8125rem;">
+      <div style="margin-bottom: 0.85rem;">
+        <strong style="color: #0F2747;">Improvement Justification:</strong>
+        <p id="optJustification" style="margin: 0.25rem 0 0 0; color: #334155; line-height: 1.5;"></p>
+      </div>
+
+      <label style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">Optimized Source Code</label>
+      <pre id="optCodeBlock" style="background: #0F172A; color: #E2E8F0; padding: 0.85rem; border-radius: 6px; font-family: monospace; font-size: 0.8rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; margin-top: 0.25rem;"></pre>
+    </div>
+    <div class="codelab-modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" onclick="closeOptimizeModal()">Cancel</button>
+      <button type="button" class="btn btn-sm btn-primary" id="btnApplyOptimizedCode">Load Optimized Version</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Progressive Hints Modal -->
+<div id="hintsModal" class="codelab-modal-overlay" style="display: none;">
+  <div class="codelab-modal-card" style="max-width: 540px;">
+    <div class="codelab-modal-header">
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0F2747;">💡 Progressive Hints</h3>
+      <button type="button" class="btn-close" onclick="closeHintsModal()" style="border: none; background: transparent; font-size: 1.25rem;">✕</button>
+    </div>
+    <div class="codelab-modal-body">
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 1rem;">
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="fetchHintForLevel(1)">Hint 1: Concept</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="fetchHintForLevel(2)">Hint 2: Algorithm</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="fetchHintForLevel(3)">Hint 3: Guidance</button>
+      </div>
+      <div id="hintsModalBody" style="min-height: 80px;"></div>
+    </div>
+    <div class="codelab-modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" onclick="closeHintsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Language Conversion Modal -->
+<div id="convertModal" class="codelab-modal-overlay" style="display: none;">
+  <div class="codelab-modal-card" style="max-width: 640px;">
+    <div class="codelab-modal-header">
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0F2747;">🔄 Convert Language</h3>
+      <button type="button" class="btn-close" onclick="closeConvertModal()" style="border: none; background: transparent; font-size: 1.25rem;">✕</button>
+    </div>
+    <div class="codelab-modal-body" style="font-size: 0.8125rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <span>Current: <strong id="convertSourceLang">PYTHON</strong></span>
+        <span>➔</span>
+        <label for="convertTargetSelect" style="margin: 0;">Target:</label>
+        <select id="convertTargetSelect" class="form-select form-select-sm" style="width: auto;">
+          <option value="cpp">C++</option>
+          <option value="c">C</option>
+          <option value="java">Java</option>
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="executeLanguageConversion()">
+          Translate Code
+        </button>
+      </div>
+
+      <label style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">Converted Preview</label>
+      <pre id="convertPreviewBlock" style="background: #0F172A; color: #E2E8F0; padding: 0.85rem; border-radius: 6px; font-family: monospace; font-size: 0.8rem; max-height: 220px; overflow-y: auto; white-space: pre-wrap; margin-top: 0.25rem;">Select target language and click "Translate Code".</pre>
+    </div>
+    <div class="codelab-modal-footer">
+      <button type="button" class="btn btn-sm btn-secondary" onclick="closeConvertModal()">Cancel</button>
+      <button type="button" class="btn btn-sm btn-primary" id="btnApplyConversion" style="display: none;">Load Converted Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- SCRIPTS & CONFIG -->
+<!-- ========================================== -->
 <script>
-let currentSessionId = '<%= activeSession ? activeSession.id : "" %>';
+  window.__INITIAL_SESSION_ID = '<%= activeSession ? activeSession.id : "" %>';
+  window.__STARTER_TEMPLATES = <%- JSON.stringify(starterTemplates) %>;
 
-async function executeCurrentCode() {
-  const code = document.getElementById('codeEditor').value;
-  const lang = document.getElementById('codeLanguageSelect').value;
-  const stdin = document.getElementById('stdinInput').value;
-  const consoleArea = document.getElementById('outputConsoleArea');
-  const badge = document.getElementById('execStatusBadge');
-  const metrics = document.getElementById('execMetricsText');
-  const runBtn = document.getElementById('runCodeBtn');
-
-  runBtn.disabled = true;
-  runBtn.innerHTML = '<span>⏳ Running...</span>';
-  badge.textContent = 'Running';
-  badge.style.background = '#FEF3C7';
-  badge.style.color = '#92400E';
-
-  try {
-    const res = await fetch('/api/code-lab/execute', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sourceCode: code,
-        language: lang,
-        stdin: stdin,
-        sessionId: currentSessionId || null
-      })
-    });
-    const data = await res.json();
-    
-    if (data.success) {
-      if (data.stderr) {
-        consoleArea.textContent = data.stdout ? data.stdout + '\n' + data.stderr : data.stderr;
-        badge.textContent = data.status === 'timeout' ? 'Timeout' : 'Runtime Error';
-        badge.style.background = '#FEE2E2';
-        badge.style.color = '#991B1B';
-      } else {
-        consoleArea.textContent = data.stdout || '(Program completed with no console output)';
-        badge.textContent = 'Completed (0)';
-        badge.style.background = '#DCFCE7';
-        badge.style.color = '#166534';
-      }
-      metrics.textContent = (data.executionTimeMs || 0) + ' ms';
-    } else {
-      consoleArea.textContent = 'Execution Error: ' + (data.error || 'Server rejected execution');
-      badge.textContent = 'Failed';
-      badge.style.background = '#FEE2E2';
-      badge.style.color = '#991B1B';
-    }
-  } catch (err) {
-    consoleArea.textContent = 'Network / Execution Exception: ' + err.message;
-    badge.textContent = 'Error';
-    badge.style.background = '#FEE2E2';
-  } finally {
-    runBtn.disabled = false;
-    runBtn.innerHTML = '<span>▶ Run Code</span>';
-  }
-}
-
-async function triggerAiAction(actionType) {
-  const code = document.getElementById('codeEditor').value;
-  const lang = document.getElementById('codeLanguageSelect').value;
-  const resultArea = document.getElementById('aiAnalysisResultArea');
-
-  resultArea.textContent = '🧠 Analyzing with Gemini AI model... Please wait...';
-
-  try {
-    const res = await fetch('/api/code-lab/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sourceCode: code,
-        language: lang,
-        analysisType: actionType,
-        sessionId: currentSessionId || null
-      })
-    });
-    const data = await res.json();
-
-    if (data.success && data.analysis) {
-      resultArea.textContent = data.analysis.summary;
-    } else {
-      resultArea.textContent = 'AI Analysis unavailable: ' + (data.error || 'Unknown error');
-    }
-  } catch (err) {
-    resultArea.textContent = 'Error contacting AI Service: ' + err.message;
-  }
-}
-
-async function saveCurrentSession() {
-  const title = document.getElementById('sessionTitleInput').value;
-  const lang = document.getElementById('codeLanguageSelect').value;
-  const code = document.getElementById('codeEditor').value;
-  const stdin = document.getElementById('stdinInput').value;
-  const saveBtn = document.getElementById('saveSessionBtn');
-
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Saving...';
-
-  try {
-    if (currentSessionId) {
-      const res = await fetch('/api/code-lab/sessions/' + currentSessionId, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, language: lang, source_code: code, stdin })
-      });
+  async function deleteSession(id) {
+    if (!confirm('Are you sure you want to delete this saved session?')) return;
+    try {
+      const res = await fetch('/api/code-lab/sessions/' + id, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        saveBtn.textContent = '✓ Saved Cloud Draft';
-        setTimeout(() => { saveBtn.textContent = '💾 Save Cloud Draft'; }, 2000);
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to delete session');
       }
-    } else {
-      const res = await fetch('/api/code-lab/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, language: lang, source_code: code })
-      });
-      const data = await res.json();
-      if (data.success && data.session) {
-        currentSessionId = data.session.id;
-        saveBtn.textContent = '✓ Saved Cloud Draft';
-        setTimeout(() => { saveBtn.textContent = '💾 Save Cloud Draft'; }, 2000);
-      }
+    } catch (e) {
+      alert('Network error: ' + e.message);
     }
-  } catch (e) {
-    alert('Failed to save session: ' + e.message);
-  } finally {
-    saveBtn.disabled = false;
   }
-}
-
-async function createNewSession() {
-  currentSessionId = '';
-  document.getElementById('sessionTitleInput').value = 'Algorithm Session ' + new Date().toLocaleTimeString();
-  document.getElementById('codeEditor').value = '// Write your solution here...\n';
-  document.getElementById('outputConsoleArea').textContent = '// Console ready.\n';
-}
-
-async function runAutomatedTests() {
-  const code = document.getElementById('codeEditor').value;
-  const lang = document.getElementById('codeLanguageSelect').value;
-  const listArea = document.getElementById('testSuiteResultsList');
-
-  listArea.innerHTML = '<div style="color: #64748B;">Running test cases...</div>';
-
-  try {
-    const res = await fetch('/api/code-lab/test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sourceCode: code,
-        language: lang,
-        testCases: [
-          { input: '', expected_output: '' }
-        ]
-      })
-    });
-    const data = await res.json();
-
-    if (data.success && data.testResults) {
-      const tr = data.testResults;
-      listArea.innerHTML = `
-        <div style="background: ${tr.allPassed ? '#DCFCE7' : '#FEE2E2'}; border-radius: 6px; padding: 0.5rem 0.75rem; color: ${tr.allPassed ? '#166534' : '#991B1B'}; font-weight: 600;">
-          Suite Result: ${tr.passed} / ${tr.total} Test Cases Passed
-        </div>
-      `;
-    }
-  } catch (err) {
-    listArea.innerHTML = `<div style="color: #DC2626;">Failed to run tests: ${err.message}</div>`;
-  }
-}
 </script>
+
+<!-- Monaco Editor Loader from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+<!-- Code Lab Interactive Engine -->
+<script src="/js/code-lab.js"></script>
