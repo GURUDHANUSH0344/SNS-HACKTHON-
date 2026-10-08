@@ -1,0 +1,229 @@
+<%- include('../partials/head', { pageTitle: 'AI Question Paper Generator — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">AI Question Paper Generator</h1>
+          <p class="page-subtitle">Curriculum-Aligned, Multi-Part Balanced University Examination Blueprint Creator</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 1.5rem;">
+        
+        <!-- Generator Controls Form -->
+        <div class="card">
+          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">
+            ⚡ Configure Examination Blueprint
+          </h3>
+          <form id="qpGenForm" onsubmit="handleGeneratePaper(event)">
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <select id="qpSubject" name="subject" class="form-control" required>
+                <% subjects.forEach(sub => { %>
+                  <option value="<%= sub.name %>"><%= sub.name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label class="form-label">Unit Scope</label>
+                <input type="text" id="qpUnit" name="unit" class="form-control" value="Unit 1 & 2" required />
+              </div>
+              <div>
+                <label class="form-label">Key Topic Focus</label>
+                <input type="text" id="qpTopic" name="topic" class="form-control" placeholder="e.g. Graph Algorithms & Shortest Path" value="Graph Theory & Shortest Path" required />
+              </div>
+            </div>
+
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label class="form-label">Difficulty Balance</label>
+                <select id="qpDifficulty" name="difficulty" class="form-control">
+                  <option value="Balanced" selected>Balanced (Bloom's Taxonomy L1-L5)</option>
+                  <option value="Easy">Standard / Foundational</option>
+                  <option value="Hard">Advanced / Analytical</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Duration (Minutes)</label>
+                <input type="number" id="qpDuration" name="durationMinutes" class="form-control" value="90" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Total Marks</label>
+              <input type="number" id="qpMarks" name="totalMarks" class="form-control" value="50" required />
+            </div>
+
+            <button type="submit" id="btnGenPaper" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem;">
+              ⚡ Generate Balanced Question Paper
+            </button>
+          </form>
+
+          <!-- Saved Papers Library -->
+          <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+            <h4 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.5rem;">Saved Question Papers Library (<%= savedPapers.length %>)</h4>
+            <% if (savedPapers && savedPapers.length > 0) { %>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto;">
+                <% savedPapers.forEach(sp => { %>
+                  <div style="padding: 0.65rem; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.8125rem;">
+                    <strong><%= sp.title %></strong>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);"><%= sp.subject %> • <%= sp.totalMarks %> Marks • <%= sp.durationMinutes %> Mins</div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">No saved papers in archive.</p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Live Paper Preview Sheet -->
+        <div>
+          <div class="paper-preview-sheet" id="paperSheetPreview">
+            <div class="paper-header">
+              <div style="font-size: 0.85rem; font-weight: bold; text-transform: uppercase;">CAMPUS AI — SCHOOL OF COMPUTING & ENGINEERING</div>
+              <div class="paper-title" id="previewTitle">MODEL SEMESTER EXAMINATION 2026</div>
+              <div class="paper-meta-row">
+                <span id="previewSubject">SUBJECT: Data Structures (CS201)</span>
+                <span id="previewDuration">DURATION: 90 Minutes</span>
+                <span id="previewMarks">MAX MARKS: 50</span>
+              </div>
+            </div>
+
+            <div id="previewSectionsContainer">
+              <div style="text-align: center; color: #64748b; padding: 3rem 0; font-family: 'Inter', sans-serif;">
+                Configure the blueprint parameters on the left and click <strong>Generate Balanced Question Paper</strong> to preview the official examination sheet.
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;" id="saveActionsRow" style="display: none;">
+            <button type="button" onclick="window.print()" class="btn btn-secondary btn-sm">🖨️ Print Paper</button>
+            <button type="button" id="btnSavePaper" onclick="saveCurrentPaper()" class="btn btn-primary btn-sm">💾 Save to Library</button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  let activePaperData = null;
+
+  async function handleGeneratePaper(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnGenPaper');
+    btn.disabled = true;
+    btn.innerHTML = '⚙️ Generating Balanced Blueprint...';
+
+    const subject = document.getElementById('qpSubject').value;
+    const unit = document.getElementById('qpUnit').value;
+    const topic = document.getElementById('qpTopic').value;
+    const difficulty = document.getElementById('qpDifficulty').value;
+    const durationMinutes = document.getElementById('qpDuration').value;
+    const totalMarks = document.getElementById('qpMarks').value;
+
+    try {
+      const res = await fetch('/faculty/question-paper/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, unit, topic, difficulty, durationMinutes, totalMarks })
+      });
+      const data = await res.json();
+      btn.disabled = false;
+      btn.innerHTML = '⚡ Generate Balanced Question Paper';
+
+      if (data.success) {
+        activePaperData = {
+          title: data.title,
+          subject,
+          unit,
+          topic,
+          difficulty,
+          durationMinutes,
+          totalMarks,
+          sections: data.sections
+        };
+        renderPaperSheet(activePaperData);
+        showToast('Question paper successfully generated!', 'success');
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '⚡ Generate Balanced Question Paper';
+      showToast('Error generating paper', 'error');
+    }
+  }
+
+  function renderPaperSheet(data) {
+    document.getElementById('previewTitle').textContent = `${data.subject.toUpperCase()} — EXAMINATION`;
+    document.getElementById('previewSubject').textContent = `SUBJECT: ${data.subject}`;
+    document.getElementById('previewDuration').textContent = `DURATION: ${data.durationMinutes} Minutes`;
+    document.getElementById('previewMarks').textContent = `MAX MARKS: ${data.totalMarks}`;
+
+    const container = document.getElementById('previewSectionsContainer');
+    let html = '';
+
+    data.sections.forEach(sec => {
+      html += `
+        <div style="margin-top: 1.25rem;">
+          <div class="paper-section-title">${sec.name}</div>
+          <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 0.65rem;">${sec.instruction}</div>
+      `;
+
+      sec.questions.forEach(q => {
+        html += `
+          <div class="paper-question-item">
+            <span><strong>${q.qNo}.</strong> ${q.text}</span>
+            <span class="paper-marks">[${q.marks}]</span>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  async function saveCurrentPaper() {
+    if (!activePaperData) {
+      showToast('Please generate a paper first', 'warning');
+      return;
+    }
+
+    try {
+      const res = await fetch('/faculty/question-paper/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: activePaperData.title,
+          subject: activePaperData.subject,
+          unit: activePaperData.unit,
+          topic: activePaperData.topic,
+          difficulty: activePaperData.difficulty,
+          durationMinutes: activePaperData.durationMinutes,
+          totalMarks: activePaperData.totalMarks,
+          sectionsJson: JSON.stringify(activePaperData.sections)
+        })
+      });
+      const result = await res.json();
+      if (result.success) {
+        showToast('Question paper archived in faculty library!', 'success');
+      }
+    } catch (e) {
+      showToast('Failed to save paper', 'error');
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

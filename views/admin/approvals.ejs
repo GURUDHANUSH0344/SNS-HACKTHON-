@@ -1,0 +1,74 @@
+<%- include('../partials/head', { pageTitle: 'Pending Account Approvals — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Pending Administrator & Staff Approvals</h1>
+          <p class="page-subtitle">Verify Institutional Credentials and Authorize Privileged Access</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Registration Requests Awaiting Verification</h3>
+          <span class="badge badge-warning"><%= pendingAdmins.length %> Pending</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Full Name</th>
+                  <th>Institutional Email</th>
+                  <th>Requested Role</th>
+                  <th>Registration Date</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (pendingAdmins && pendingAdmins.length > 0) { %>
+                  <% pendingAdmins.forEach(u => { %>
+                    <tr>
+                      <td><strong><%= u.name %></strong></td>
+                      <td><%= u.email %></td>
+                      <td><span class="badge badge-primary"><%= u.role %></span></td>
+                      <td><%= new Date(u.createdAt).toLocaleDateString() %></td>
+                      <td><span class="badge badge-warning"><%= u.status %></span></td>
+                      <td style="text-align: right;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                          <form method="POST" action="/admin/approvals/<%= u.id %>/approve" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                          </form>
+                          <form method="POST" action="/admin/approvals/<%= u.id %>/reject" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✓</div>
+                      <p>All administrative registration requests have been reviewed and approved.</p>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,106 @@
+<%- include('../partials/head', { pageTitle: 'Attendance Tracking — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Attendance Tracking & 75% Compliance</h1>
+          <p class="page-subtitle">Daily Class Attendance Records and University Regulatory Thresholds</p>
+        </div>
+        <div>
+          <a href="/ai/attendance-intelligence" class="btn btn-primary btn-sm">
+            🎯 Open 75% Attendance Simulator
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Attendance Summary -->
+      <div class="grid-cards">
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Aggregate Attendance</span>
+            <h2 style="color: <%= percentage >= 75 ? 'var(--success)' : 'var(--danger)' %>;"><%= percentage %>%</h2>
+          </div>
+          <div class="stat-icon <%= percentage >= 75 ? 'green' : 'red' %>">🎯</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Total Lectures Tracked</span>
+            <h2><%= total %></h2>
+          </div>
+          <div class="stat-icon blue">📚</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Classes Attended</span>
+            <h2 style="color: var(--success);"><%= present %></h2>
+          </div>
+          <div class="stat-icon green">✅</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Missed Lectures</span>
+            <h2 style="color: var(--danger);"><%= total - present %></h2>
+          </div>
+          <div class="stat-icon red">⚠️</div>
+        </div>
+      </div>
+
+      <!-- Attendance Table -->
+      <div class="table-container">
+        <div class="table-header-tools">
+          <span style="font-weight: 600; font-size: 0.875rem;">Daily Classroom Attendance Logs (<%= attendanceRecords.length %>)</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Verified by course faculty instructors</span>
+        </div>
+
+        <% if (attendanceRecords && attendanceRecords.length > 0) { %>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Subject Course</th>
+                  <th>Status</th>
+                  <th>Faculty Instructor</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% attendanceRecords.forEach(att => { %>
+                  <tr>
+                    <td><strong><%= att.date %></strong></td>
+                    <td><%= att.subjectName %></td>
+                    <td>
+                      <span class="status-pill status-<%= att.status === 'Present' || att.status === 'Late' ? 'present' : 'absent' %>">
+                        <%= att.status %>
+                      </span>
+                    </td>
+                    <td>Faculty Desk</td>
+                    <td><%= att.remarks || 'Regular lecture attendance' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">No Attendance Records Logged Yet</div>
+            <p class="empty-text">Your attendance history will show here as lectures are taken.</p>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,303 @@
+<%- include('../partials/head', { pageTitle: 'Academic Results & Transcripts — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Academic Results & Semester Transcripts</h1>
+          <p class="page-subtitle">Official Grade History, Credit Accumulation, and Subject-Wise Evaluation</p>
+        </div>
+        <div class="page-header-actions">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">
+            <span>🖨️ Print Transcript</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Academic Standing & CGPA Metric Strip -->
+      <div class="academic-summary-grid">
+        <div class="summary-metric-card">
+          <div class="metric-icon-wrap primary-icon">🎓</div>
+          <div class="metric-details">
+            <span class="metric-label">Cumulative GPA (CGPA)</span>
+            <div class="metric-value-row">
+              <span class="metric-primary-val"><%= typeof cgpa !== 'undefined' ? cgpa : '9.14' %></span>
+              <span class="metric-sub-val">/ 10.0</span>
+            </div>
+            <span class="metric-footnote">Across <%= typeof totalCredits !== 'undefined' ? totalCredits : 75 %> Credits Earned</span>
+          </div>
+        </div>
+
+        <div class="summary-metric-card">
+          <div class="metric-icon-wrap blue-icon">📚</div>
+          <div class="metric-details">
+            <span class="metric-label">Current Academic Standing</span>
+            <div class="metric-value-row">
+              <span class="metric-primary-val">Semester <%= student.semester || 5 %></span>
+            </div>
+            <span class="metric-footnote badge-text-success">✓ 100% Course Clearance</span>
+          </div>
+        </div>
+
+        <div class="summary-metric-card">
+          <div class="metric-icon-wrap emerald-icon">🎖️</div>
+          <div class="metric-details">
+            <span class="metric-label">Degree Credit Progress</span>
+            <div class="metric-value-row">
+              <span class="metric-primary-val"><%= typeof totalCredits !== 'undefined' ? totalCredits : 75 %></span>
+              <span class="metric-sub-val">/ 160 Credits</span>
+            </div>
+            <div class="metric-progress-track">
+              <div class="metric-progress-fill" style="width: <%= Math.min(100, Math.round(((totalCredits || 75) / 160) * 100)) %>%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-metric-card">
+          <div class="metric-icon-wrap indigo-icon">⚖️</div>
+          <div class="metric-details">
+            <span class="metric-label">Active Backlogs</span>
+            <div class="metric-value-row">
+              <span class="metric-primary-val">0</span>
+              <span class="metric-sub-val">Subjects</span>
+            </div>
+            <span class="metric-footnote badge-text-success">First Class with Distinction</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Results Table Container -->
+      <div class="table-container">
+        <!-- Table Header Tools with Semester Dropdown -->
+        <div class="table-header-tools">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Official Grades Recorded</span>
+              <span id="resultsCountBadge" class="badge badge-primary" style="font-size: 0.72rem; padding: 0.15rem 0.55rem; font-weight: 700;"><%= exams.length %></span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.15rem;">Standardized 10-point scale grading</span>
+          </div>
+
+          <!-- Dropdown for Each Semester -->
+          <div class="semester-filter-wrap" style="display: flex; align-items: center; gap: 0.65rem;">
+            <label for="semesterFilterSelect" style="font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); margin: 0; white-space: nowrap;">Semester:</label>
+            <div style="position: relative; display: inline-block;">
+              <select id="semesterFilterSelect" class="form-control" style="width: auto; min-width: 180px; height: 38px; padding: 0.4rem 2rem 0.4rem 0.85rem; font-size: 0.84rem; font-weight: 700; color: #0F2747; border: 1.5px solid #CBD5E1; border-radius: 6px; cursor: pointer; appearance: none; -webkit-appearance: none; background: #FFFFFF;" onchange="handleSemesterFilter(this.value)" aria-label="Filter results by semester">
+                <option value="all">All Semesters (Sem 1 - <%= (availableSemesters && availableSemesters[0]) || 5 %>)</option>
+                <% (availableSemesters || [5, 4, 3, 2, 1]).forEach(sem => { %>
+                  <option value="<%= sem %>" <%= sem === (student.semester || 5) ? 'selected' : '' %>>
+                    Semester <%= sem %> <%= sem === (student.semester || 5) ? '(Current Term)' : '' %>
+                  </option>
+                <% }) %>
+              </select>
+              <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); font-size: 0.65rem; color: var(--text-muted); pointer-events: none;">▼</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Semester Context Sub-Bar -->
+        <div class="semester-context-strip" id="semesterContextStrip">
+          <div class="context-strip-left">
+            <span style="font-size: 1.1rem;">🎓</span>
+            <span class="context-strip-title" id="contextStripTitle">Semester <%= student.semester || 5 %> Term Evaluation</span>
+          </div>
+
+          <div class="context-strip-right">
+            <div class="context-stat-item">
+              <span>Term SGPA:</span>
+              <strong class="context-stat-val highlight-gpa" id="contextStripGpa">
+                <%= (examsBySemester && examsBySemester[student.semester || 5]) ? examsBySemester[student.semester || 5].sgpa : '8.75' %> / 10.0
+              </strong>
+            </div>
+
+            <div class="context-stat-item">
+              <span>Credits:</span>
+              <strong class="context-stat-val" id="contextStripCredits">
+                <%= (examsBySemester && examsBySemester[student.semester || 5]) ? examsBySemester[student.semester || 5].totalCredits : '16' %> Credits
+              </strong>
+            </div>
+
+            <div class="context-stat-item" id="contextStripStatus">
+              <span class="status-pill status-paid">✓ Term Cleared</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Examination Results Table -->
+        <div class="table-responsive">
+          <table class="data-table" id="gradesDataTable">
+            <thead>
+              <tr>
+                <th>SUBJECT</th>
+                <th>TYPE</th>
+                <th>SEMESTER</th>
+                <th>SCORE</th>
+                <th>PERCENTAGE</th>
+                <th>GRADE</th>
+                <th>CREDITS</th>
+                <th>DATE</th>
+              </tr>
+            </thead>
+            <tbody id="gradesTableBody">
+              <% if (exams && exams.length > 0) { %>
+                <% exams.forEach(ex => { %>
+                  <tr class="exam-row" data-semester="<%= ex.semester %>">
+                    <td>
+                      <div class="subject-cell">
+                        <strong class="subject-name"><%= ex.subjectName %></strong>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="exam-type-pill"><%= ex.examType %></span>
+                    </td>
+                    <td>
+                      <span class="badge badge-info" style="font-weight: 600; font-size: 0.72rem;">Semester <%= ex.semester %></span>
+                    </td>
+                    <td>
+                      <strong><%= ex.marksObtained %></strong> <span class="score-max">/ <%= ex.maxMarks %></span>
+                    </td>
+                    <td>
+                      <div class="percent-badge-container">
+                        <strong><%= ex.percentage %>%</strong>
+                        <div class="score-progress-bar">
+                          <div class="score-progress-fill" style="width: <%= ex.percentage %>%;"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <% 
+                        const gradeClean = (ex.grade || 'A').toUpperCase().replace('+', '-plus');
+                        let gradeClass = 'grade-a';
+                        if (gradeClean.includes('O') || gradeClean.includes('PLUS')) gradeClass = 'grade-outstanding';
+                        else if (gradeClean === 'A') gradeClass = 'grade-a';
+                        else if (gradeClean.includes('B')) gradeClass = 'grade-b';
+                        else if (gradeClean.includes('C') || gradeClean.includes('P')) gradeClass = 'grade-c';
+                        else if (gradeClean.includes('F')) gradeClass = 'grade-f';
+                      %>
+                      <span class="grade-pill <%= gradeClass %>">
+                        <%= ex.grade %>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="credits-tag"><%= ex.credits || 4 %> Credits</span>
+                    </td>
+                    <td>
+                      <span class="exam-date-text"><%= ex.examDate || '2026-09-25' %></span>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    No evaluation records published yet.
+                  </td>
+                </tr>
+              <% } %>
+              <tr id="noSemesterExamsRow" style="display: none;">
+                <td colspan="8" class="text-center py-4 text-muted" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                  No evaluation records published for this semester yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/**
+ * Interactive Client-Side Semester Dropdown Filter
+ */
+const semesterSummaryData = <%- JSON.stringify(examsBySemester || {}) %>;
+const overallCGPA = '<%= typeof cgpa !== "undefined" ? cgpa : "9.14" %>';
+const overallCredits = '<%= typeof totalCredits !== "undefined" ? totalCredits : "75" %>';
+
+function handleSemesterFilter(selectedSem) {
+  const rows = document.querySelectorAll('#gradesTableBody tr.exam-row');
+  let matchCount = 0;
+
+  rows.forEach(row => {
+    const rowSem = row.getAttribute('data-semester');
+    if (selectedSem === 'all' || rowSem === String(selectedSem)) {
+      row.style.display = '';
+      matchCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const emptyRow = document.getElementById('noSemesterExamsRow');
+  if (emptyRow) {
+    emptyRow.style.display = (matchCount === 0) ? '' : 'none';
+  }
+
+  const countBadge = document.getElementById('resultsCountBadge');
+  if (countBadge) {
+    countBadge.textContent = matchCount;
+  }
+
+  // Update context strip
+  const stripTitle = document.getElementById('contextStripTitle');
+  const stripGpa = document.getElementById('contextStripGpa');
+  const stripCredits = document.getElementById('contextStripCredits');
+  const stripStatus = document.getElementById('contextStripStatus');
+
+  if (selectedSem === 'all') {
+    if (stripTitle) stripTitle.textContent = 'Cumulative Academic Record (All Semesters)';
+    if (stripGpa) stripGpa.textContent = overallCGPA + ' / 10.0 (CGPA)';
+    if (stripCredits) stripCredits.textContent = overallCredits + ' Total Credits';
+    if (stripStatus) stripStatus.innerHTML = '<span class="status-pill status-paid">✓ All Terms Cleared</span>';
+  } else if (semesterSummaryData[selectedSem]) {
+    const semData = semesterSummaryData[selectedSem];
+    if (stripTitle) stripTitle.textContent = 'Semester ' + selectedSem + ' Term Evaluation';
+    if (stripGpa) stripGpa.textContent = semData.sgpa + ' / 10.0 (SGPA)';
+    if (stripCredits) stripCredits.textContent = semData.totalCredits + ' Credits';
+    if (stripStatus) {
+      stripStatus.innerHTML = semData.passed 
+        ? '<span class="status-pill status-paid">✓ Term Cleared</span>' 
+        : '<span class="status-pill status-unpaid">⚠️ Backlog</span>';
+    }
+  } else {
+    if (stripTitle) stripTitle.textContent = 'Semester ' + selectedSem;
+    if (stripGpa) stripGpa.textContent = 'N/A';
+    if (stripCredits) stripCredits.textContent = '0 Credits';
+    if (stripStatus) stripStatus.innerHTML = '<span class="status-pill">Pending</span>';
+  }
+
+  // Seamless URL synchronization without page reload
+  try {
+    const url = new URL(window.location);
+    if (selectedSem === 'all') {
+      url.searchParams.delete('semester');
+    } else {
+      url.searchParams.set('semester', selectedSem);
+    }
+    window.history.replaceState({}, '', url);
+  } catch (e) {}
+}
+
+// Initial state on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const semParam = urlParams.get('semester');
+  const select = document.getElementById('semesterFilterSelect');
+
+  if (select) {
+    if (semParam && (semParam === 'all' || semesterSummaryData[semParam])) {
+      select.value = semParam;
+    }
+    handleSemesterFilter(select.value);
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

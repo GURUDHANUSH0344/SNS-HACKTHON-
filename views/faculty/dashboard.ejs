@@ -1,0 +1,278 @@
+<%- include('../partials/head', { pageTitle: 'Faculty Academic Workspace — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <% 
+        const now = new Date();
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+        const hour = now.getHours();
+        let greeting = 'Good Morning';
+        if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
+        else if (hour >= 17) greeting = 'Good Evening';
+        const facultyName = profile ? profile.name : 'Faculty Member';
+        const designation = profile ? profile.designation : 'Associate Professor';
+        const dept = profile ? profile.department : 'Computer Science & Engineering';
+        const empId = profile ? profile.employeeId : 'EMP-FAC-01';
+      %>
+
+      <!-- Welcome Section (Section 9 & 13) -->
+      <div class="dashboard-welcome-banner">
+        <div class="welcome-context">
+          <div class="welcome-tag">
+            <span>👩‍🏫 FACULTY ACADEMIC WORKSPACE</span>
+          </div>
+          <h1 class="welcome-title">
+            <%= greeting %>, <%= facultyName.split(' ')[0] %> 👋
+          </h1>
+          <p class="welcome-subtitle">
+            <%= designation %> • Department of <%= dept %> • ID: <code class="font-mono"><%= empId %></code>
+          </p>
+        </div>
+
+        <div class="welcome-meta-bar">
+          <div class="welcome-date-chip">
+            <span>📅</span>
+            <span><%= formattedDate %></span>
+          </div>
+          <div class="ai-status-pill">
+            <span class="pulse-dot"></span>
+            <span>🤖 Faculty Intelligence Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions Bar (Section 13) -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.75rem;">
+        <a href="/faculty/attendance" class="btn btn-primary btn-sm">
+          <span>📋 Take Attendance</span>
+        </a>
+        <a href="/faculty/assignments" class="btn btn-secondary btn-sm">
+          <span>📂 Create Assignment</span>
+        </a>
+        <a href="/faculty/exams" class="btn btn-secondary btn-sm">
+          <span>📊 Enter Marks</span>
+        </a>
+        <a href="/faculty/question-paper" class="btn btn-ai btn-sm">
+          <span>⚡ Generate Question Paper</span>
+        </a>
+        <a href="/faculty/students" class="btn btn-secondary btn-sm">
+          <span>👥 View Students</span>
+        </a>
+        <a href="/faculty/ai-assistant" class="btn btn-secondary btn-sm">
+          <span>🤖 Ask AI Assistant</span>
+        </a>
+      </div>
+
+      <!-- KPI Statistics Grid (Section 10 & 13) -->
+      <div class="grid-cards">
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Total Timetable Slots</span>
+            <h2><%= totalClassesCount %></h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Weekly Lectures & Labs</p>
+          </div>
+          <div class="stat-icon blue">📅</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Enrolled Students</span>
+            <h2><%= studentsCount %></h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Active Academic Cohorts</p>
+          </div>
+          <div class="stat-icon green">👥</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Cohort Avg Attendance</span>
+            <h2 class="<%= avgAttendance >= 75 ? 'text-success' : 'text-danger' %>"><%= avgAttendance %>%</h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              <%= avgAttendance >= 75 ? '✓ Above 75% Regulatory Baseline' : '⚠️ Below 75% Warning' %>
+            </p>
+          </div>
+          <div class="stat-icon <%= avgAttendance >= 75 ? 'green' : 'amber' %>">🎯</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Published Assignments</span>
+            <h2><%= pendingAssignmentsCount %></h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Continuous Assessments</p>
+          </div>
+          <div class="stat-icon purple">📂</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Campus Helpdesk Issues</span>
+            <h2><%= typeof openIssues !== 'undefined' && openIssues ? openIssues.length : 0 %></h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Under Review / Pending</p>
+          </div>
+          <div class="stat-icon red">🚨</div>
+        </div>
+      </div>
+
+      <!-- Main Layout Split -->
+      <div style="display: grid; grid-template-columns: 2fr 1.15fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        
+        <!-- Left Column: Today's Classes & AI Teaching Pedagogical Insights -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Today's Classes Timetable (Section 13) -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">📅 Today's Lecture Schedule (<%= currentDay %>)</h3>
+                <p style="font-size: 0.78125rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  Assigned instructional classrooms and laboratory blocks
+                </p>
+              </div>
+              <a href="/faculty/timetable" class="btn btn-secondary btn-sm">
+                Full Weekly Schedule →
+              </a>
+            </div>
+
+            <% if (todayClasses && todayClasses.length > 0) { %>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <% todayClasses.forEach(c => { %>
+                  <div class="timetable-slot">
+                    <div>
+                      <div class="slot-time"><%= c.startTime %> - <%= c.endTime %></div>
+                      <div class="slot-title"><%= c.subjectName %></div>
+                      <div class="slot-room">
+                        <%= c.classroom %> • Year <%= c.year %> (Section <%= c.section %>) • ~<%= c.studentCount %> Enrolled
+                      </div>
+                    </div>
+                    <a href="/faculty/attendance" class="btn btn-primary btn-sm">
+                      Take Attendance
+                    </a>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">☕</div>
+                <div style="font-weight: 600; font-size: 0.9rem;">No scheduled lectures for <%= currentDay %></div>
+                <div style="font-size: 0.78125rem; margin-top: 0.25rem;">Use this time for research, paper grading, or AI question generation.</div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- AI Pedagogical & Student Intervention Insights (Section 13) -->
+          <div class="card ai-recommendation-card">
+            <div class="ai-recommendation-header">
+              <div class="ai-badge-group">
+                <span class="badge-ai">💡 AI Teaching & Early Warning Alerts</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Algorithmic cohort insights</span>
+              </div>
+              <a href="/faculty/ai-analytics" class="btn btn-ai btn-sm">
+                Student Diagnostics →
+              </a>
+            </div>
+
+            <div class="ai-insight-statement">
+              Proactive pedagogical signals synthesized across LMS submissions and attendance rates:
+            </div>
+
+            <div class="ai-recommendation-box">
+              <ul class="ai-action-list">
+                <li>
+                  <span class="bullet-dot">•</span>
+                  <span><strong>Attendance Watch:</strong> 3 students in Semester 5 (Section A) are hovering at 68-73% attendance. Automated early warning notifications have been queued.</span>
+                </li>
+                <li>
+                  <span class="bullet-dot">•</span>
+                  <span><strong>Concept Difficulty:</strong> B-Tree Indexing assignment submissions showed 34% of students struggling with multi-level branch splits. Suggest scheduling a 20-minute lab review.</span>
+                </li>
+                <li>
+                  <span class="bullet-dot">•</span>
+                  <span><strong>Question Paper Balance:</strong> Mid-term model questions are well balanced across Level 2 (Understanding) and Level 4 (Analysis) on Bloom's Taxonomy.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: AI Assistant Launch, Announcements, Quick Actions -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Faculty AI Assistant Quick Launch -->
+          <div class="card" style="border-top: 3px solid var(--primary); background: var(--card-bg);">
+            <div class="card-header" style="margin-bottom: 0.5rem;">
+              <h3 class="card-title" style="font-size: 1rem; display: flex; align-items: center; gap: 0.35rem;">
+                <span>🤖</span> AI Teaching Assistant
+              </h3>
+            </div>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">
+              Generate lesson plans, interactive quiz prompts, rubric criteria, and personalized remedial materials in seconds.
+            </p>
+            <a href="/faculty/ai-assistant" class="btn btn-ai" style="width: 100%;">
+              Open Teaching Assistant →
+            </a>
+          </div>
+
+          <!-- Campus Announcements -->
+          <div class="card">
+            <div class="card-header" style="margin-bottom: 0.85rem;">
+              <h3 class="card-title" style="font-size: 1rem;">📢 Campus Announcements</h3>
+              <a href="/faculty/announcements" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.5rem;">
+                + Post New
+              </a>
+            </div>
+
+            <% if (announcements && announcements.length > 0) { %>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <% announcements.forEach(a => { %>
+                  <div style="padding: 0.75rem 0.85rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                    <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-main);"><%= a.title %></div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem;">
+                      By <%= a.authorName %> • <%= new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <p style="font-size: 0.8125rem; color: var(--text-muted);">No active campus announcements.</p>
+            <% } %>
+          </div>
+
+          <!-- Quick Navigation Tiles -->
+          <div class="card">
+            <h3 class="card-title" style="font-size: 1rem; margin-bottom: 0.75rem;">⚡ Faculty Accelerators</h3>
+            <div class="quick-action-card-grid">
+              <a href="/faculty/attendance" class="action-tile-btn">
+                <span class="action-tile-icon">📋</span>
+                <span class="action-tile-label">Attendance Roster</span>
+              </a>
+              <a href="/faculty/question-paper" class="action-tile-btn">
+                <span class="action-tile-icon">⚡</span>
+                <span class="action-tile-label">Question Papers</span>
+              </a>
+              <a href="/faculty/timetable" class="action-tile-btn">
+                <span class="action-tile-icon">📅</span>
+                <span class="action-tile-label">My Timetable</span>
+              </a>
+              <a href="/faculty/profile" class="action-tile-btn">
+                <span class="action-tile-icon">👤</span>
+                <span class="action-tile-label">My Profile</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

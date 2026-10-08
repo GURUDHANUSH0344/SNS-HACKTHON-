@@ -1,0 +1,152 @@
+<header class="top-navbar">
+  <div class="nav-left">
+    <!-- Global Search Bar with Ctrl+K Command Palette Trigger -->
+    <div class="nav-search" onclick="openSearchPalette()">
+      <span class="nav-search-icon">🔍</span>
+      <input 
+        type="text" 
+        readonly 
+        placeholder="Search students, subjects, reports, problems..." 
+        aria-label="Global Search"
+      />
+      <div class="search-kbd-shortcut">
+        <span>Ctrl</span><span>K</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <!-- Executive AI Console Shortcut -->
+    <a href="/ai/hackathon-demo" class="btn btn-secondary btn-sm" title="CampusAI Operations Console">
+      <span>AI Console</span>
+    </a>
+
+
+
+    <!-- Smart Notifications Bell -->
+    <a href="/ai/notifications" class="nav-icon-btn" title="Smart Notifications & Alerts">
+      <span class="nav-icon-symbol">🔔</span>
+      <span class="notification-badge-dot"></span>
+    </a>
+
+    <!-- User Profile Dropdown Menu -->
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <div class="user-dropdown-container" id="userDropdownContainer">
+        <button class="user-profile-trigger" id="userProfileTrigger" onclick="toggleUserDropdown(event)" aria-expanded="false" aria-haspopup="true" title="Switch workspace role or view account profile">
+          <div class="user-avatar-circle">
+            <%= currentUser.name.charAt(0).toUpperCase() %>
+          </div>
+          <div class="user-meta-preview">
+            <span class="user-meta-name"><%= currentUser.name.split(' ')[0] %></span>
+            <span class="user-meta-role badge-pill"><%= currentUser.role %></span>
+          </div>
+          <span class="dropdown-arrow-icon">▼</span>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="user-dropdown-menu" id="userDropdownMenu">
+          <div class="dropdown-user-header">
+            <div class="user-avatar-circle large">
+              <%= currentUser.name.charAt(0).toUpperCase() %>
+            </div>
+            <div class="dropdown-user-info">
+              <div class="dropdown-user-name"><%= currentUser.name %></div>
+              <div class="dropdown-user-email"><%= currentUser.email %></div>
+              <span class="badge-role"><%= currentUser.role.toUpperCase() %></span>
+            </div>
+          </div>
+
+          <!-- Quick Role Switcher -->
+          <div class="dropdown-role-section">
+            <div class="dropdown-section-label">
+              <span>SWITCH WORKSPACE ROLE</span>
+            </div>
+
+            <div class="role-switch-list">
+              <!-- Student Role -->
+              <a href="/auth/switch-role/student" class="role-switch-item <%= currentUser.role === 'student' ? 'active' : '' %>" title="Switch to Student Workspace (Farhan Akhtar)">
+                <div class="role-switch-icon-box student-bg">🎓</div>
+                <div class="role-switch-meta">
+                  <span class="role-switch-name">Student</span>
+                  <span class="role-switch-persona">Farhan Akhtar</span>
+                </div>
+                <% if (currentUser.role === 'student') { %>
+                  <span class="role-active-indicator" title="Current Active Workspace">✓ Current</span>
+                <% } else { %>
+                  <span class="role-switch-action">Switch →</span>
+                <% } %>
+              </a>
+
+              <!-- Faculty Role -->
+              <a href="/auth/switch-role/faculty" class="role-switch-item <%= (currentUser.role === 'teacher' || currentUser.role === 'faculty') ? 'active' : '' %>" title="Switch to Faculty Workspace (Dr. Sarah Jenkins)">
+                <div class="role-switch-icon-box faculty-bg">👨‍🏫</div>
+                <div class="role-switch-meta">
+                  <span class="role-switch-name">Faculty</span>
+                  <span class="role-switch-persona">Dr. Sarah Jenkins</span>
+                </div>
+                <% if (currentUser.role === 'teacher' || currentUser.role === 'faculty') { %>
+                  <span class="role-active-indicator" title="Current Active Workspace">✓ Current</span>
+                <% } else { %>
+                  <span class="role-switch-action">Switch →</span>
+                <% } %>
+              </a>
+
+              <!-- Admin Role -->
+              <a href="/auth/switch-role/admin" class="role-switch-item <%= currentUser.role === 'admin' ? 'active' : '' %>" title="Switch to Admin Workspace (Dr. Arthur Vance)">
+                <div class="role-switch-icon-box admin-bg">🛡️</div>
+                <div class="role-switch-meta">
+                  <span class="role-switch-name">Administrator</span>
+                  <span class="role-switch-persona">Dr. Arthur Vance</span>
+                </div>
+                <% if (currentUser.role === 'admin') { %>
+                  <span class="role-active-indicator" title="Current Active Workspace">✓ Current</span>
+                <% } else { %>
+                  <span class="role-switch-action">Switch →</span>
+                <% } %>
+              </a>
+            </div>
+          </div>
+
+          <div class="dropdown-divider"></div>
+
+          <% 
+            let profileUrl = '/student/profile';
+            if (currentUser.role === 'teacher' || currentUser.role === 'faculty') {
+              profileUrl = '/faculty/profile';
+            } else if (currentUser.role === 'admin') {
+              profileUrl = '/student/profile'; // Or admin profile overview
+            }
+          %>
+
+          <div class="dropdown-section-label">
+            <span>ACCOUNT</span>
+          </div>
+
+          <a href="<%= profileUrl %>" class="dropdown-item">
+            <span class="dropdown-item-icon">👤</span>
+            <span>My Profile</span>
+          </a>
+
+          <button type="button" class="dropdown-item" onclick="openModal('settingsModal'); toggleUserDropdown();">
+            <span class="dropdown-item-icon">⚙️</span>
+            <span>Interface Settings</span>
+          </button>
+
+          <a href="/ai/notifications" class="dropdown-item">
+            <span class="dropdown-item-icon">🔔</span>
+            <span>Notifications Feed</span>
+          </a>
+
+          <div class="dropdown-divider"></div>
+
+          <a href="/auth/logout" class="dropdown-item dropdown-item-danger">
+            <span class="dropdown-item-icon">🚪</span>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    <% } else { %>
+      <a href="/auth/login" class="btn btn-primary btn-sm">Sign In</a>
+    <% } %>
+  </div>
+</header>

@@ -1,0 +1,106 @@
+/* CAMPUS AI - Faculty & Academic Modules CSS */
+
+.timetable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.timetable-day-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.timetable-day-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.timetable-slot {
+  background: #f8fafc;
+  border-left: 3px solid var(--primary);
+  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.65rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.slot-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.slot-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 0.15rem;
+}
+
+.slot-room {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Question Paper Paper-Style Preview */
+.paper-preview-sheet {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Times New Roman', Times, serif;
+  color: #000;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.paper-header {
+  text-align: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.paper-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.paper-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.paper-section-title {
+  font-size: 1.05rem;
+  font-weight: bold;
+  margin: 1.25rem 0 0.5rem;
+  text-decoration: underline;
+}
+
+.paper-question-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.paper-marks {
+  font-weight: bold;
+  white-space: nowrap;
+  margin-left: 1rem;
+}

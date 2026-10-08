@@ -1,0 +1,174 @@
+<%- include('../partials/head', { pageTitle: 'Institutional Early Warning System — CampusAI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      
+      <!-- Institutional Header -->
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-xs);">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.25rem;">
+            <h1 class="page-title" style="margin-bottom: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+              Early Warning System (EWS)
+            </h1>
+            <span class="status-pill status-ai-insight" style="font-size: 0.7rem; font-weight: 700;">Predictive Triage</span>
+          </div>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Proactive risk detection identifying academic and compliance bottlenecks before exam lockout
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="/ai/admin-analytics" class="btn btn-secondary btn-sm">
+            Institutional Analytics
+          </a>
+          <a href="/ai/reports" class="btn btn-primary btn-sm">
+            Export EWS Audit (PDF) →
+          </a>
+        </div>
+      </div>
+
+      <!-- Risk Tier Metrics Grid -->
+      <div class="grid-cards" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 1.5rem;">
+        
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Critical Risk (≥60)</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--danger); margin-top: 0.25rem;">
+              <%= earlyWarnings.filter(w => w.riskLevel === 'Critical').length %>
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--danger); font-weight: 600; margin-top: 0.2rem;">
+              Immediate intervention needed
+            </div>
+          </div>
+          <div class="stat-icon red">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">High Risk (40–59)</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--warning); margin-top: 0.25rem;">
+              <%= earlyWarnings.filter(w => w.riskLevel === 'High').length %>
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--warning); font-weight: 600; margin-top: 0.2rem;">
+              Attendance shortage signals
+            </div>
+          </div>
+          <div class="stat-icon amber">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Medium Risk (20–39)</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+              <%= earlyWarnings.filter(w => w.riskLevel === 'Medium').length %>
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              Borderline mark fluctuations
+            </div>
+          </div>
+          <div class="stat-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Low Risk (&lt;20)</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--success); margin-top: 0.25rem;">
+              <%= earlyWarnings.filter(w => w.riskLevel === 'Low').length %>
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 0.2rem;">
+              Optimal academic trajectory
+            </div>
+          </div>
+          <div class="stat-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- AI Insights Callout (Information-Driven, Master Prompt Compliant) -->
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: var(--radius-card); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+          <h3 style="font-size: 0.9375rem; font-weight: 700; color: var(--text-main); margin: 0;">Institutional Early Warning Methodology</h3>
+          <span class="status-pill status-ai-insight">Algorithmic Rules</span>
+        </div>
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+          CampusAI combines attendance thresholds (&lt;75% mandatory cutoff), consecutive internal exam score differentials, and coursework submission delinquency. Students reaching Critical status are automatically queued for remedial class assignment and faculty mentorship.
+        </p>
+      </div>
+
+      <!-- Early Warning Student Registry Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">Student Academic Risk Registry</h3>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+              Calculated automatically from live database attendance logs, exam scores, and assignments
+            </p>
+          </div>
+          <span class="status-pill status-ai-insight"><%= earlyWarnings.length %> Cohorts Evaluated</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Program & Year</th>
+                <th>Risk Level</th>
+                <th>Calculated Risk Score</th>
+                <th>Contributing Risk Factors</th>
+                <th>Prescribed Action Plan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% earlyWarnings.forEach(st => { %>
+                <tr>
+                  <td><strong class="font-mono"><%= st.studentId %></strong></td>
+                  <td><strong><%= st.name %></strong></td>
+                  <td><%= st.course %> (Yr <%= st.year %>)</td>
+                  <td>
+                    <span class="status-pill status-<%= st.riskLevel.toLowerCase() %>">
+                      <%= st.riskLevel %>
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <div style="width: 70px; height: 6px; background: var(--border); border-radius: 999px; overflow: hidden;">
+                        <div style="width: <%= st.riskScore %>%; height: 6px; border-radius: 999px; background: <%= st.riskLevel === 'Critical' ? 'var(--danger)' : st.riskLevel === 'High' ? 'var(--warning)' : 'var(--primary)' %>;"></div>
+                      </div>
+                      <span style="font-weight: 700; font-size: 0.8125rem;"><%= st.riskScore %>/100</span>
+                    </div>
+                  </td>
+                  <td style="font-size: 0.8125rem; max-width: 280px; color: var(--text-secondary);">
+                    <% st.reasons.forEach(r => { %>
+                      <div>• <%= r %></div>
+                    <% }) %>
+                  </td>
+                  <td style="font-size: 0.8125rem; color: var(--primary); font-weight: 600; max-width: 250px;">
+                    <%= st.recommendedAction[0] %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

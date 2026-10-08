@@ -1,0 +1,148 @@
+<%- include('../partials/head', { pageTitle: 'AI 7-Day Learning Path — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Personalized AI 7-Day Learning Path</h1>
+          <p class="page-subtitle">Micro-Learning Daily Study Blueprints Targeted to Remediate Concept Deficits</p>
+        </div>
+        <div>
+          <button type="button" onclick="openModal('createPathModal')" class="btn btn-primary btn-sm">
+            + Generate New 7-Day Plan
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <% if (learningPaths && learningPaths.length > 0) { %>
+          <% learningPaths.forEach(path => { %>
+            <% const schedule = JSON.parse(path.scheduleJson || '[]'); %>
+            <div class="card" style="border-top: 3px solid var(--primary);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                  <span class="status-pill status-inprogress" style="margin-bottom: 0.35rem;">
+                    <%= path.subject %> • <%= path.status %>
+                  </span>
+                  <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-top: 0.2rem;">
+                    <%= path.weakTopic %>
+                  </h3>
+                  <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.15rem;">
+                    <strong>Target Goal:</strong> <%= path.goal %>
+                  </p>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Overall Completion</span>
+                  <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary);" id="progressText_<%= path.id %>">
+                    <%= path.progressPercentage %>%
+                  </div>
+                  <div style="width: 140px; height: 6px; background: #e2e8f0; border-radius: 999px; margin-top: 0.25rem;">
+                    <div id="progressBar_<%= path.id %>" style="height: 6px; border-radius: 999px; width: <%= path.progressPercentage %>%; background: var(--primary);"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 7-Day Steps Grid (Section 30) -->
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <% schedule.forEach((d, idx) => { %>
+                  <div style="background: <%= d.completed ? 'var(--success-light)' : '#f8fafc' %>; border: 1px solid <%= d.completed ? 'rgba(16, 185, 129, 0.3)' : 'var(--border)' %>; border-radius: var(--radius-sm); padding: 1rem; display: flex; align-items: flex-start; gap: 1rem;">
+                    <input type="checkbox" <%= d.completed ? 'checked' : '' %> onchange="toggleDay('<%= path.id %>', <%= idx %>)" style="width: 20px; height: 20px; margin-top: 0.2rem; cursor: pointer;" />
+                    <div style="flex: 1;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                        <strong style="font-size: 0.9rem; color: <%= d.completed ? '#065f46' : 'var(--text-main)' %>;">
+                          Day <%= d.day %>: <%= d.title %>
+                        </strong>
+                        <% if (d.completed) { %>
+                          <span style="font-size: 0.75rem; color: var(--success); font-weight: 700;">✓ Completed</span>
+                        <% } %>
+                      </div>
+                      <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                        <strong>Task:</strong> <%= d.task %>
+                      </div>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.78125rem; color: var(--text-muted); background: rgba(255,255,255,0.7); padding: 0.5rem 0.75rem; border-radius: 4px;">
+                        <div>📖 <strong>Study:</strong> <%= d.studyRecommendation %></div>
+                        <div>✍️ <strong>Practice:</strong> <%= d.practiceActivity %></div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="card empty-state">
+            <div class="empty-icon">🗺️</div>
+            <div class="empty-title">No Active Learning Paths</div>
+            <p class="empty-text">Create a customized 7-Day study schedule to master weak subjects and boost your exam scores.</p>
+            <button onclick="openModal('createPathModal')" class="btn btn-primary btn-sm">+ Generate 7-Day Plan</button>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Generate Learning Path Modal -->
+<div class="modal-overlay" id="createPathModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Generate AI 7-Day Personalized Learning Path</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/ai/learning-path/generate" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select name="subject" class="form-control" required>
+            <% subjects.forEach(sub => { %>
+              <option value="<%= sub.name %>"><%= sub.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Weak Area / Challenging Topic</label>
+          <input type="text" name="weakTopic" class="form-control" placeholder="e.g. Dynamic Programming Memoization, Semaphore Synchronization..." required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Target Learning Goal</label>
+          <input type="text" name="goal" class="form-control" value="Score 85%+ in upcoming exam and build strong conceptual retention" required />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Generate 7-Day Plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  async function toggleDay(pathId, dayIndex) {
+    try {
+      const res = await fetch(`/ai/learning-path/${pathId}/toggle-day`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dayIndex })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById(`progressText_${pathId}`).textContent = `${data.progress}%`;
+        document.getElementById(`progressBar_${pathId}`).style.width = `${data.progress}%`;
+        showToast('Study progress saved!', 'success');
+        setTimeout(() => location.reload(), 600);
+      }
+    } catch (e) {
+      showToast('Error updating study progress', 'error');
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,500 @@
+<aside class="sidebar" id="appSidebar">
+  <!-- Brand Header -->
+  <a href="/" class="sidebar-brand">
+    <div class="sidebar-logo">🏛️</div>
+    <div class="sidebar-brand-text">
+      <h1 class="brand-title">CampusAI</h1>
+      <span class="brand-tagline">Understand. Predict. Solve.</span>
+    </div>
+  </a>
+
+  <!-- Navigation Links -->
+  <nav class="sidebar-nav" id="sidebarNav">
+    <% const userRole = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.role : 'guest'; %>
+
+    <% if (userRole === 'admin') { %>
+      <!-- ================= ADMIN ROLE NAVIGATION ================= -->
+      <%
+        const isAdminOverview = currentPath === '/' || currentPath === '/admin/dashboard' || currentPath === '/ai/hackathon-demo';
+        const isAdminAcademics = (currentPath.startsWith('/admissions') && !currentPath.includes('students')) || currentPath.startsWith('/exams');
+        const isAdminIntelligence = currentPath.startsWith('/ai/early-warning') || currentPath.startsWith('/ai/admin-analytics') || currentPath.startsWith('/ai/reports') || currentPath === '/ai/campus-info' || (currentPath.startsWith('/problems') && !currentPath.includes('departments')) || currentPath === '/ai/notifications';
+        const isAdminAdministration = currentPath.includes('/students') || currentPath.startsWith('/fees') || currentPath.startsWith('/hostel') || currentPath.includes('/departments');
+      %>
+
+      <!-- Group 1: Overview -->
+      <div class="nav-group <%= (isAdminOverview || (!isAdminAcademics && !isAdminIntelligence && !isAdminAdministration)) ? 'open' : '' %>" data-group-id="admin-overview">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">OVERVIEW</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/" class="nav-item <%= currentPath === '/' || currentPath === '/admin/dashboard' ? 'active' : '' %>" data-tooltip="Dashboard">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Dashboard</span>
+          </a>
+          <a href="/ai/hackathon-demo" class="nav-item <%= currentPath === '/ai/hackathon-demo' ? 'active' : '' %>" data-tooltip="Smart AI Hub">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">Smart AI Hub</span>
+            <span class="badge-ai">AI</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 2: Academics -->
+      <div class="nav-group <%= isAdminAcademics ? 'open' : '' %>" data-group-id="admin-academics">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">ACADEMICS</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/admissions" class="nav-item <%= currentPath.startsWith('/admissions') && !currentPath.includes('students') ? 'active' : '' %>" data-tooltip="Admissions">
+            <span class="nav-icon">🎓</span>
+            <span class="nav-label">Admissions</span>
+          </a>
+          <a href="/exams" class="nav-item <%= currentPath.startsWith('/exams') ? 'active' : '' %>" data-tooltip="Exams & Marks">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Exams & Marks</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 3: Campus Intelligence -->
+      <div class="nav-group <%= isAdminIntelligence ? 'open' : '' %>" data-group-id="admin-intelligence">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">CAMPUS INTELLIGENCE</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/ai/early-warning" class="nav-item <%= currentPath === '/ai/early-warning' ? 'active' : '' %>" data-tooltip="Early Warning">
+            <span class="nav-icon">⚠️</span>
+            <span class="nav-label">Early Warning</span>
+            <span class="badge-ai">Risk AI</span>
+          </a>
+          <a href="/ai/admin-analytics" class="nav-item <%= currentPath === '/ai/admin-analytics' ? 'active' : '' %>" data-tooltip="Campus Analytics">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Campus Analytics</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/resources" class="nav-item <%= currentPath.startsWith('/ai/resources') || currentPath.startsWith('/resources') ? 'active' : '' %>" data-tooltip="Resource Optimization Engine">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Resource Optimization</span>
+            <span class="badge-ai">Engine</span>
+          </a>
+          <a href="/ai/code-lab" class="nav-item <%= currentPath.startsWith('/ai/code-lab') ? 'active' : '' %>" data-tooltip="AI Code Lab">
+            <span class="nav-icon">💻</span>
+            <span class="nav-label">AI Code Lab</span>
+            <span class="badge-ai">Cloud</span>
+          </a>
+          <a href="/ai/reports" class="nav-item <%= currentPath.startsWith('/ai/reports') ? 'active' : '' %>" data-tooltip="AI Reports (PDF)">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Reports (PDF)</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/campus-info" class="nav-item <%= currentPath === '/ai/campus-info' ? 'active' : '' %>" data-tooltip="Campus Directory">
+            <span class="nav-icon">🏫</span>
+            <span class="nav-label">Campus Directory</span>
+          </a>
+          <a href="/problems" class="nav-item <%= currentPath.startsWith('/problems') && !currentPath.includes('departments') ? 'active' : '' %>" data-tooltip="Problem Helpdesk">
+            <span class="nav-icon">🚨</span>
+            <span class="nav-label">Campus Problems</span>
+            <span class="badge-ai">Auto</span>
+          </a>
+          <a href="/ai/notifications" class="nav-item <%= currentPath === '/ai/notifications' ? 'active' : '' %>" data-tooltip="Notifications">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-label">Notifications</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 4: Administration -->
+      <div class="nav-group <%= isAdminAdministration ? 'open' : '' %>" data-group-id="admin-administration">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">ADMINISTRATION</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/admissions/students" class="nav-item <%= currentPath.includes('/students') ? 'active' : '' %>" data-tooltip="Student Directory">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Students</span>
+          </a>
+          <a href="/fees" class="nav-item <%= currentPath.startsWith('/fees') ? 'active' : '' %>" data-tooltip="Fee Management">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">Fees</span>
+          </a>
+          <a href="/hostel" class="nav-item <%= currentPath.startsWith('/hostel') ? 'active' : '' %>" data-tooltip="Hostel Allocations">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Hostel</span>
+          </a>
+          <a href="/problems/departments" class="nav-item <%= currentPath.includes('/departments') ? 'active' : '' %>" data-tooltip="Department SLAs">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Departments</span>
+          </a>
+        </div>
+      </div>
+
+    <% } else if (userRole === 'teacher' || userRole === 'faculty') { %>
+      <!-- ================= FACULTY ROLE NAVIGATION ================= -->
+      <%
+        const isFacultyWorkspace = currentPath === '/faculty/dashboard' || currentPath === '/ai/hackathon-demo';
+        const isFacultyAcademics = currentPath.startsWith('/faculty/timetable') || currentPath.startsWith('/faculty/attendance') || currentPath.startsWith('/faculty/assignments') || currentPath.startsWith('/faculty/exams') || currentPath.startsWith('/faculty/students');
+        const isFacultyAI = currentPath.startsWith('/faculty/ai-analytics') || currentPath.startsWith('/faculty/ai-assistant') || currentPath.startsWith('/faculty/question-paper');
+        const isFacultyCampus = currentPath === '/ai/campus-info' || currentPath.startsWith('/problems') || currentPath.startsWith('/faculty/announcements');
+      %>
+
+      <!-- Group 1: Workspace -->
+      <div class="nav-group <%= (isFacultyWorkspace || (!isFacultyAcademics && !isFacultyAI && !isFacultyCampus)) ? 'open' : '' %>" data-group-id="faculty-workspace">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">WORKSPACE</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/faculty/dashboard" class="nav-item <%= currentPath === '/faculty/dashboard' ? 'active' : '' %>" data-tooltip="Faculty Dashboard">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Dashboard</span>
+          </a>
+          <a href="/ai/hackathon-demo" class="nav-item <%= currentPath === '/ai/hackathon-demo' ? 'active' : '' %>" data-tooltip="Smart AI Hub">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">Smart AI Hub</span>
+            <span class="badge-ai">AI</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 2: Academics -->
+      <div class="nav-group <%= isFacultyAcademics ? 'open' : '' %>" data-group-id="faculty-academics">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">ACADEMICS</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/faculty/timetable" class="nav-item <%= currentPath === '/faculty/timetable' ? 'active' : '' %>" data-tooltip="Classes & Timetable">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Timetable</span>
+          </a>
+          <a href="/faculty/attendance" class="nav-item <%= currentPath === '/faculty/attendance' ? 'active' : '' %>" data-tooltip="Attendance Management">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Attendance</span>
+          </a>
+          <a href="/faculty/assignments" class="nav-item <%= currentPath === '/faculty/assignments' ? 'active' : '' %>" data-tooltip="Assignments & Grading">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">Assignments</span>
+          </a>
+          <a href="/faculty/exams" class="nav-item <%= currentPath === '/faculty/exams' ? 'active' : '' %>" data-tooltip="Exams & Marks Entry">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Exams & Marks</span>
+          </a>
+          <a href="/faculty/students" class="nav-item <%= currentPath === '/faculty/students' ? 'active' : '' %>" data-tooltip="Student 360° View">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Students 360°</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 3: Faculty AI -->
+      <div class="nav-group <%= isFacultyAI ? 'open' : '' %>" data-group-id="faculty-ai">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">FACULTY AI</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/faculty/ai-analytics" class="nav-item <%= currentPath === '/faculty/ai-analytics' ? 'active' : '' %>" data-tooltip="AI Academic Analytics">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">AI Analytics</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/faculty/ai-assistant" class="nav-item <%= currentPath === '/faculty/ai-assistant' ? 'active' : '' %>" data-tooltip="AI Teaching Assistant">
+            <span class="nav-icon">💡</span>
+            <span class="nav-label">AI Assistant</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/faculty/question-paper" class="nav-item <%= currentPath === '/faculty/question-paper' ? 'active' : '' %>" data-tooltip="Question Paper Gen">
+            <span class="nav-icon">📑</span>
+            <span class="nav-label">Question Paper</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/resources" class="nav-item <%= currentPath.startsWith('/ai/resources') || currentPath.startsWith('/resources') ? 'active' : '' %>" data-tooltip="Resource Optimization Engine">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Resource Optimization</span>
+            <span class="badge-ai">Engine</span>
+          </a>
+          <a href="/ai/code-lab" class="nav-item <%= currentPath.startsWith('/ai/code-lab') ? 'active' : '' %>" data-tooltip="AI Code Lab">
+            <span class="nav-icon">💻</span>
+            <span class="nav-label">AI Code Lab</span>
+            <span class="badge-ai">Cloud</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 4: Campus -->
+      <div class="nav-group <%= isFacultyCampus ? 'open' : '' %>" data-group-id="faculty-campus">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">CAMPUS</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/ai/campus-info" class="nav-item <%= currentPath === '/ai/campus-info' ? 'active' : '' %>" data-tooltip="Campus Directory">
+            <span class="nav-icon">🏫</span>
+            <span class="nav-label">Campus Directory</span>
+          </a>
+          <a href="/problems" class="nav-item <%= currentPath.startsWith('/problems') ? 'active' : '' %>" data-tooltip="Issue Triage">
+            <span class="nav-icon">🚨</span>
+            <span class="nav-label">Issue Triage</span>
+          </a>
+          <a href="/faculty/announcements" class="nav-item <%= currentPath === '/faculty/announcements' ? 'active' : '' %>" data-tooltip="Announcements">
+            <span class="nav-icon">📢</span>
+            <span class="nav-label">Announcements</span>
+          </a>
+        </div>
+      </div>
+
+    <% } else { %>
+      <!-- ================= STUDENT ROLE NAVIGATION ================= -->
+      <%
+        const isStudentPortal = currentPath === '/student/dashboard' || currentPath === '/ai/hackathon-demo' || currentPath === '/';
+        const isStudentAcademics = currentPath.startsWith('/student/results') || currentPath.startsWith('/student/attendance') || currentPath.startsWith('/student/assignments') || currentPath.startsWith('/student/fees') || currentPath.startsWith('/student/hostel');
+        const isStudentAI = currentPath.startsWith('/ai/') && currentPath !== '/ai/hackathon-demo' && currentPath !== '/ai/campus-info' && currentPath !== '/ai/notifications';
+        const isStudentSupport = currentPath.startsWith('/ai/campus-info') || currentPath.startsWith('/problems') || currentPath.startsWith('/ai/notifications');
+      %>
+
+      <!-- Group 1: Portal -->
+      <div class="nav-group <%= (isStudentPortal || (!isStudentAcademics && !isStudentAI && !isStudentSupport)) ? 'open' : '' %>" data-group-id="student-portal">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">PORTAL</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/student/dashboard" class="nav-item <%= currentPath === '/student/dashboard' ? 'active' : '' %>" data-tooltip="Student Dashboard">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Dashboard</span>
+          </a>
+          <a href="/ai/hackathon-demo" class="nav-item <%= currentPath === '/ai/hackathon-demo' ? 'active' : '' %>" data-tooltip="Smart AI Hub">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">Smart AI Hub</span>
+            <span class="badge-ai">AI</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 2: Academics -->
+      <div class="nav-group <%= isStudentAcademics ? 'open' : '' %>" data-group-id="student-academics">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">ACADEMICS</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/student/results" class="nav-item <%= currentPath === '/student/results' ? 'active' : '' %>" data-tooltip="Exam Transcripts">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">Academics</span>
+          </a>
+          <a href="/student/attendance" class="nav-item <%= currentPath === '/student/attendance' ? 'active' : '' %>" data-tooltip="Attendance Standing">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Attendance</span>
+          </a>
+          <a href="/student/assignments" class="nav-item <%= currentPath === '/student/assignments' ? 'active' : '' %>" data-tooltip="Assignments">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">Assignments</span>
+          </a>
+          <a href="/student/fees" class="nav-item <%= currentPath === '/student/fees' ? 'active' : '' %>" data-tooltip="Fees & Receipts">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">Fees</span>
+          </a>
+          <a href="/student/hostel" class="nav-item <%= currentPath === '/student/hostel' ? 'active' : '' %>" data-tooltip="Hostel Room">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Hostel</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 3: Smart AI -->
+      <div class="nav-group <%= isStudentAI ? 'open' : '' %>" data-group-id="student-smart-ai">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">SMART AI</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/ai/assistant" class="nav-item <%= currentPath === '/ai/assistant' ? 'active' : '' %>" data-tooltip="CampusAI Assistant">
+            <span class="nav-icon">💬</span>
+            <span class="nav-label">AI Assistant</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/performance-prediction" class="nav-item <%= currentPath === '/ai/performance-prediction' ? 'active' : '' %>" data-tooltip="SGPA Prediction">
+            <span class="nav-icon">🔮</span>
+            <span class="nav-label">AI Prediction</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/learning-path" class="nav-item <%= currentPath.startsWith('/ai/learning-path') ? 'active' : '' %>" data-tooltip="7-Day Learning Path">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-label">Learning Path</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/quiz" class="nav-item <%= currentPath.startsWith('/ai/quiz') ? 'active' : '' %>" data-tooltip="Adaptive AI Quiz">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">AI Quiz</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/attendance-intelligence" class="nav-item <%= currentPath === '/ai/attendance-intelligence' ? 'active' : '' %>" data-tooltip="75% Attendance Sim">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-label">Attendance AI</span>
+            <span class="badge-ai">75%</span>
+          </a>
+          <a href="/ai/profile" class="nav-item <%= currentPath === '/ai/profile' ? 'active' : '' %>" data-tooltip="360° Growth Profile">
+            <span class="nav-icon">⭐</span>
+            <span class="nav-label">Growth Profile</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/career" class="nav-item <%= currentPath === '/ai/career' ? 'active' : '' %>" data-tooltip="Career Navigator">
+            <span class="nav-icon">🧭</span>
+            <span class="nav-label">Career Navigator</span>
+            <span class="badge-ai">AI</span>
+          </a>
+          <a href="/ai/gamification" class="nav-item <%= currentPath === '/ai/gamification' ? 'active' : '' %>" data-tooltip="Gamification & XP">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Gamification</span>
+          </a>
+          <a href="/ai/resources" class="nav-item <%= currentPath.startsWith('/ai/resources') || currentPath.startsWith('/resources') ? 'active' : '' %>" data-tooltip="Resource Optimization Engine">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Resource Optimization</span>
+            <span class="badge-ai">Engine</span>
+          </a>
+          <a href="/ai/code-lab" class="nav-item <%= currentPath.startsWith('/ai/code-lab') ? 'active' : '' %>" data-tooltip="AI Code Lab">
+            <span class="nav-icon">💻</span>
+            <span class="nav-label">AI Code Lab</span>
+            <span class="badge-ai">Cloud</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group 4: Campus & Support -->
+      <div class="nav-group <%= isStudentSupport ? 'open' : '' %>" data-group-id="student-support">
+        <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+          <span class="nav-group-title">CAMPUS & SUPPORT</span>
+          <span class="nav-group-chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="nav-group-items">
+          <a href="/ai/campus-info" class="nav-item <%= currentPath === '/ai/campus-info' ? 'active' : '' %>" data-tooltip="Campus Directory">
+            <span class="nav-icon">🏫</span>
+            <span class="nav-label">Directory</span>
+          </a>
+          <a href="/problems/new" class="nav-item <%= currentPath === '/problems/new' ? 'active' : '' %>" data-tooltip="Report Problem">
+            <span class="nav-icon">🚨</span>
+            <span class="nav-label">Report Issue</span>
+            <span class="badge-ai">Auto</span>
+          </a>
+          <a href="/ai/notifications" class="nav-item <%= currentPath === '/ai/notifications' ? 'active' : '' %>" data-tooltip="Notifications">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-label">Notifications</span>
+          </a>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- ================= UNIVERSAL FOOTER NAVIGATION ================= -->
+    <% 
+      let userProfileLink = '/student/profile';
+      if (userRole === 'teacher' || userRole === 'faculty') userProfileLink = '/faculty/profile';
+      else if (userRole === 'admin') userProfileLink = '/student/profile';
+      const isPreferencesActive = currentPath === userProfileLink;
+    %>
+
+    <div class="nav-group <%= isPreferencesActive ? 'open' : '' %>" data-group-id="universal-preferences">
+      <button type="button" class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-title">PREFERENCES</span>
+        <span class="nav-group-chevron">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
+      </button>
+      <div class="nav-group-items">
+        <a href="<%= userProfileLink %>" class="nav-item <%= currentPath === userProfileLink ? 'active' : '' %>" data-tooltip="My Profile">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Profile</span>
+        </a>
+        <button type="button" class="nav-item nav-item-btn" onclick="openModal('settingsModal')" data-tooltip="Interface Settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Settings</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar Footer Mini-Card & Collapse Toggle -->
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <div class="sidebar-footer">
+      <div class="user-mini-card">
+        <a href="<%= userProfileLink %>" class="user-avatar-circle" title="View Profile (<%= currentUser.name %>)" aria-label="View Profile">
+          <%= currentUser.name.charAt(0).toUpperCase() %>
+        </a>
+        <div class="user-mini-info">
+          <div class="user-mini-name" title="<%= currentUser.name %>"><%= currentUser.name %></div>
+          <div class="user-mini-role"><%= currentUser.role %></div>
+        </div>
+        <a href="/auth/logout" class="sidebar-logout-btn" title="Sign Out" aria-label="Sign Out">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Quick Toggle Collapse Button at bottom of sidebar -->
+      <button class="sidebar-collapse-trigger" onclick="toggleSidebarCollapse()" title="Collapse / Expand Sidebar" aria-label="Toggle Sidebar Collapse">
+        <span class="collapse-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </span>
+        <span class="collapse-text">Collapse Menu</span>
+      </button>
+    </div>
+  <% } %>
+</aside>

@@ -1,0 +1,260 @@
+<%- include('partials/head', { pageTitle: 'Hostel & Residential Management — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Hostel & Residential Management</h1>
+          <p class="page-subtitle">Room Inventory, Resident Student Allocations, and Occupancy Analytics</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" onclick="openModal('addRoomModal')" class="btn btn-primary btn-sm">
+            + Add Room
+          </button>
+        </div>
+      </div>
+
+      <!-- Occupancy Metrics -->
+      <div class="grid-cards">
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Total Bed Capacity</span>
+            <h2><%= totalRooms %></h2>
+          </div>
+          <div class="stat-icon blue">🛏️</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Occupied Beds</span>
+            <h2 style="color: var(--primary);"><%= occupiedCount %></h2>
+          </div>
+          <div class="stat-icon green">👤</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Vacant Beds</span>
+            <h2 style="color: var(--warning);"><%= vacantCount %></h2>
+          </div>
+          <div class="stat-icon amber">🚪</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span>Occupancy Rate</span>
+            <h2><%= occupancyRate %>%</h2>
+          </div>
+          <div class="stat-icon purple">📊</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card" style="margin-bottom: 1.25rem; padding: 1rem 1.25rem;">
+        <form action="/hostel" method="GET" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+          <div style="display: flex; gap: 1rem; flex: 1; min-width: 280px;">
+            <select name="block" class="form-control" style="max-width: 240px;" onchange="this.form.submit()">
+              <option value="all" <%= selectedBlock === 'all' ? 'selected' : '' %>>All Residential Blocks</option>
+              <option value="Block A" <%= selectedBlock.includes('Block A') ? 'selected' : '' %>>Block A (Aryabhata)</option>
+              <option value="Block B" <%= selectedBlock.includes('Block B') ? 'selected' : '' %>>Block B (Ramanujan)</option>
+              <option value="Block C" <%= selectedBlock.includes('Block C') ? 'selected' : '' %>>Block C (Visvesvaraya)</option>
+            </select>
+
+            <select name="status" class="form-control" style="max-width: 180px;" onchange="this.form.submit()">
+              <option value="all" <%= selectedStatus === 'all' ? 'selected' : '' %>>All Statuses</option>
+              <option value="Occupied" <%= selectedStatus === 'Occupied' ? 'selected' : '' %>>Occupied</option>
+              <option value="Vacant" <%= selectedStatus === 'Vacant' ? 'selected' : '' %>>Vacant</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/hostel" class="btn btn-secondary btn-sm">Reset</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Rooms Grid / Table -->
+      <div class="table-container">
+        <div class="table-header-tools">
+          <span style="font-weight: 600; font-size: 0.875rem;">Hostel Room & Bed Allocation Register (<%= rooms.length %>)</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time residential occupancy synced with student portal</span>
+        </div>
+
+        <% if (rooms && rooms.length > 0) { %>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Block & Room</th>
+                  <th>Bed Number</th>
+                  <th>Room Type</th>
+                  <th>Monthly Rent</th>
+                  <th>Current Occupant</th>
+                  <th>Check-in Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% rooms.forEach(r => { %>
+                  <tr>
+                    <td>
+                      <div style="font-weight: 700;"><%= r.block %></div>
+                      <div style="font-size: 0.8125rem; color: var(--primary);">Room <%= r.roomNumber %></div>
+                    </td>
+                    <td><strong><%= r.bedNumber %></strong></td>
+                    <td><%= r.roomType %></td>
+                    <td>₹ <%= r.rentPerMonth.toLocaleString('en-IN') %>/mo</td>
+                    <td>
+                      <% if (r.student) { %>
+                        <div style="font-weight: 600;"><%= r.student.name %></div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);"><%= r.student.studentId %> • <%= r.student.course %></div>
+                      <% } else { %>
+                        <span style="color: var(--text-muted); font-size: 0.8125rem;">— No Resident Assigned —</span>
+                      <% } %>
+                    </td>
+                    <td><%= r.checkInDate || '—' %></td>
+                    <td>
+                      <span class="status-pill status-<%= r.status === 'Occupied' ? 'paid' : 'unpaid' %>">
+                        <%= r.status %>
+                      </span>
+                    </td>
+                    <td>
+                      <div style="display: flex; gap: 0.35rem;">
+                        <% if (r.status === 'Vacant') { %>
+                          <button type="button" onclick="allocateRoomModal('<%= r.id %>', '<%= r.block %>', '<%= r.roomNumber %>', '<%= r.bedNumber %>')" class="btn btn-primary btn-sm" title="Allocate Student">
+                            Assign Student
+                          </button>
+                        <% } else { %>
+                          <form action="/hostel/<%= r.id %>/vacate" method="POST" style="margin: 0;" onsubmit="return confirm('Check out and vacate this bed?');">
+                            <button type="submit" class="btn btn-secondary btn-sm" title="Check-out Occupant">
+                              Vacate
+                            </button>
+                          </form>
+                        <% } %>
+
+                        <form action="/hostel/<%= r.id %>/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Delete this room slot permanently?');">
+                          <button type="submit" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Delete Room">
+                            🗑️
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="empty-state">
+            <div class="empty-icon">🏢</div>
+            <div class="empty-title">No Rooms Found</div>
+            <p class="empty-text">No hostel rooms match the chosen block or status filter.</p>
+            <button onclick="openModal('addRoomModal')" class="btn btn-primary btn-sm">+ Add Room</button>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Allocate Student Modal -->
+<div class="modal-overlay" id="allocateModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Allocate Student to Bed</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/hostel/allocate" method="POST">
+      <input type="hidden" name="roomId" id="allocRoomId" />
+      <div class="modal-body">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 0.85rem; margin-bottom: 1.25rem;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Target Room</span>
+          <div id="allocRoomDetails" style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select Student to Assign</label>
+          <select name="studentId" class="form-control" required>
+            <% students.forEach(st => { %>
+              <option value="<%= st.id %>"><%= st.name %> (<%= st.studentId %> - <%= st.course %>)</option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Monthly Rent Amount (₹ INR)</label>
+          <input type="number" name="rentPerMonth" class="form-control" value="6500" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Allocation Remarks / Notes</label>
+          <textarea name="remarks" class="form-control" placeholder="Room key issued, inventory form signed..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Allocation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal-overlay" id="addRoomModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Add Room to Hostel Inventory</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/hostel/add-room" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Hostel Block Name</label>
+          <select name="block" class="form-control" required>
+            <option value="Block A (Aryabhata)">Block A (Aryabhata)</option>
+            <option value="Block B (Ramanujan)">Block B (Ramanujan)</option>
+            <option value="Block C (Visvesvaraya)">Block C (Visvesvaraya)</option>
+          </select>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Room Number</label>
+            <input type="text" name="roomNumber" class="form-control" placeholder="A-206" required />
+          </div>
+          <div>
+            <label class="form-label">Bed Identifier</label>
+            <input type="text" name="bedNumber" class="form-control" placeholder="Bed-1" required />
+          </div>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Room Type</label>
+            <select name="roomType" class="form-control" required>
+              <option value="Non-AC 2-Sharing">Non-AC 2-Sharing</option>
+              <option value="AC 2-Sharing Deluxe">AC 2-Sharing Deluxe</option>
+              <option value="Non-AC 3-Sharing">Non-AC 3-Sharing</option>
+              <option value="Single Occupancy Studio">Single Occupancy Studio</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Rent / Month (₹)</label>
+            <input type="number" name="rentPerMonth" class="form-control" value="6500" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Room</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,94 @@
+<%- include('../partials/head', { pageTitle: 'Faculty Announcements — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Announcements & Campus Alerts</h1>
+          <p class="page-subtitle">Publish Official Department Notices, Examination Advisories, and Alerts</p>
+        </div>
+        <div>
+          <button type="button" onclick="openModal('addAnnouncementModal')" class="btn btn-primary btn-sm">
+            + Broadcast Announcement
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <% announcements.forEach(a => { %>
+          <div class="card" style="border-left: 4px solid <%= a.priority === 'Urgent' ? 'var(--danger)' : a.priority === 'High' ? 'var(--warning)' : 'var(--primary)' %>;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <div>
+                <span class="status-pill status-<%= a.priority === 'Urgent' ? 'critical' : a.priority === 'High' ? 'medium' : 'paid' %>" style="margin-bottom: 0.35rem;">
+                  <%= a.priority %> Priority • Target: <%= a.targetAudience %>
+                </span>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-top: 0.2rem;"><%= a.title %></h3>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right;">
+                <div><%= new Date(a.createdAt).toLocaleDateString('en-IN') %></div>
+                <div>By <%= a.authorName %></div>
+              </div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">
+              <%= a.content %>
+            </p>
+          </div>
+        <% }) %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Add Announcement Modal -->
+<div class="modal-overlay" id="addAnnouncementModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Broadcast Campus Announcement</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/faculty/announcements" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Announcement Title</label>
+          <input type="text" name="title" class="form-control" placeholder="e.g. Code Repository Lock for Mid-Semester Lab" required />
+        </div>
+
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Target Audience</label>
+            <select name="targetAudience" class="form-control">
+              <option value="All">All Campus Members</option>
+              <option value="Students" selected>Enrolled Students Only</option>
+              <option value="Faculty">Faculty & Staff</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Priority</label>
+            <select name="priority" class="form-control">
+              <option value="Normal">Normal</option>
+              <option value="High" selected>High</option>
+              <option value="Urgent">Urgent Alert</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Announcement Content</label>
+          <textarea name="content" class="form-control" style="min-height: 110px;" placeholder="Provide details, deadlines, and instructions..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Broadcast Now</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

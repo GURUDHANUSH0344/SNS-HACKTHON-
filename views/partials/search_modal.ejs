@@ -1,0 +1,181 @@
+<!-- Global Command Palette / Search Modal -->
+<div class="search-palette-overlay" id="searchPaletteOverlay">
+  <div class="search-palette-card">
+    <div class="search-palette-header">
+      <span class="search-palette-icon">🔍</span>
+      <input 
+        type="text" 
+        id="searchPaletteInput" 
+        placeholder="Search navigation, AI modules, courses, students... (Esc to close)" 
+        autocomplete="off"
+      />
+      <span class="search-palette-esc" onclick="closeSearchPalette()">ESC</span>
+    </div>
+
+    <div class="search-palette-results" id="searchPaletteResults">
+      <!-- Quick Categories -->
+      <div class="search-group-title">QUICK ACCESS & AI ENGINES</div>
+      
+      <a href="/ai/hackathon-demo" class="search-result-item" data-keywords="campusai operations hub flagship ai modules master intelligence">
+        <span class="result-icon">⚡</span>
+        <div class="result-info">
+          <div class="result-title">CampusAI Intelligence & Operations Hub</div>
+          <div class="result-sub">All 14 integrated AI modules & explainable predictive engine</div>
+        </div>
+        <span class="badge-ai">AI Flagship</span>
+      </a>
+
+      <a href="/ai/assistant" class="search-result-item" data-keywords="campusai assistant chat chatbot conversational bot ask ai">
+        <span class="result-icon">🤖</span>
+        <div class="result-info">
+          <div class="result-title">CampusAI Assistant</div>
+          <div class="result-sub">Conversational AI campus agent for academics, hostel & fees</div>
+        </div>
+        <span class="badge-ai">AI Chat</span>
+      </a>
+
+      <a href="/ai/performance-prediction" class="search-result-item" data-keywords="predict sgpa grades marks future performance exam forecast">
+        <span class="result-icon">🔮</span>
+        <div class="result-info">
+          <div class="result-title">Academic Performance Prediction</div>
+          <div class="result-sub">Explainable neural SGPA forecast & risk factor analysis</div>
+        </div>
+        <span class="badge-ai">Predictive</span>
+      </a>
+
+      <a href="/ai/early-warning" class="search-result-item" data-keywords="early warning risk critical intervention dropout alert">
+        <span class="result-icon">⚠️</span>
+        <div class="result-info">
+          <div class="result-title">Institutional Early Warning System</div>
+          <div class="result-sub">Multi-factor student dropout prevention & risk triage</div>
+        </div>
+        <span class="badge-ai">Risk AI</span>
+      </a>
+
+      <a href="/ai/attendance-intelligence" class="search-result-item" data-keywords="attendance 75 bunk simulator regulatory threshold eligibility">
+        <span class="result-icon">🎯</span>
+        <div class="result-info">
+          <div class="result-title">Attendance Intelligence & 75% Simulator</div>
+          <div class="result-sub">Regulatory threshold calculator with bunk margin simulator</div>
+        </div>
+        <span class="badge-ai">Simulator</span>
+      </a>
+
+      <a href="/ai/learning-path" class="search-result-item" data-keywords="learning path 7 day study plan remediation weak topics schedule">
+        <span class="result-icon">🗺️</span>
+        <div class="result-info">
+          <div class="result-title">7-Day AI Learning Path</div>
+          <div class="result-sub">Personalized milestone syllabus for subject mastery</div>
+        </div>
+        <span class="badge-ai">Adaptive</span>
+      </a>
+
+      <a href="/ai/quiz" class="search-result-item" data-keywords="quiz mcq test practice adaptive questions exam questions">
+        <span class="result-icon">⚡</span>
+        <div class="result-info">
+          <div class="result-title">Adaptive AI Quiz Generator</div>
+          <div class="result-sub">Dynamic question generator with instant diagnostic breakdown</div>
+        </div>
+        <span class="badge-ai">Quiz Engine</span>
+      </a>
+
+      <a href="/ai/career" class="search-result-item" data-keywords="career navigator jobs industry roles placement roadmap resume">
+        <span class="result-icon">🧭</span>
+        <div class="result-info">
+          <div class="result-title">Career & Skill Navigator</div>
+          <div class="result-sub">Role match analysis, certification pathways & capstones</div>
+        </div>
+        <span class="badge-ai">Career AI</span>
+      </a>
+
+      <a href="/ai/profile" class="search-result-item" data-keywords="360 profile growth score radar credentials badges skills">
+        <span class="result-icon">⭐</span>
+        <div class="result-info">
+          <div class="result-title">360° Student Digital Growth Profile</div>
+          <div class="result-sub">Competency index radar and verified micro-credentials</div>
+        </div>
+        <span class="badge-ai">Growth</span>
+      </a>
+
+      <a href="/ai/gamification" class="search-result-item" data-keywords="gamification xp streak level leaderboard hall of fame badges">
+        <span class="result-icon">🏆</span>
+        <div class="result-info">
+          <div class="result-title">Gamification & Hall of Fame</div>
+          <div class="result-sub">Experience points (XP), study streaks and Top 10 leaderboard</div>
+        </div>
+        <span class="badge-ai">Gamify</span>
+      </a>
+
+      <div class="search-group-title">CAMPUS ERP & SERVICES</div>
+
+      <a href="/admissions/students" class="search-result-item" data-keywords="students student directory search students list roster">
+        <span class="result-icon">👥</span>
+        <div class="result-info">
+          <div class="result-title">Student Directory</div>
+          <div class="result-sub">Manage student profiles, enrollments and course years</div>
+        </div>
+        <span class="badge-pill">ERP</span>
+      </a>
+
+      <a href="/exams" class="search-result-item" data-keywords="exams marks grading sgpa credits semester results transcript">
+        <span class="result-icon">📝</span>
+        <div class="result-info">
+          <div class="result-title">Examinations & Marks</div>
+          <div class="result-sub">Semester evaluations, scorecards, and credit records</div>
+        </div>
+        <span class="badge-pill">Academic</span>
+      </a>
+
+      <a href="/fees" class="search-result-item" data-keywords="fees payment invoices receipt finance money inr due overdue">
+        <span class="result-icon">💳</span>
+        <div class="result-info">
+          <div class="result-title">Fee Management & PDF Receipts</div>
+          <div class="result-sub">Invoice collection in ₹ INR, fee status filters and PDF billing</div>
+        </div>
+        <span class="badge-pill">Finance</span>
+      </a>
+
+      <a href="/hostel" class="search-result-item" data-keywords="hostel rooms beds allocation block rent occupancy housing">
+        <span class="result-icon">🏢</span>
+        <div class="result-info">
+          <div class="result-title">Hostel & Housing Allocation</div>
+          <div class="result-sub">Room allotment, occupancy analytics, check-in & check-out</div>
+        </div>
+        <span class="badge-pill">Campus</span>
+      </a>
+
+      <a href="/problems" class="search-result-item" data-keywords="problems issue helpdesk tickets maintenance complaint report fault">
+        <span class="result-icon">🚨</span>
+        <div class="result-info">
+          <div class="result-title">Campus Problem Helpdesk & Auto-Routing</div>
+          <div class="result-sub">AI ticket categorization, department dispatch & SLA tracking</div>
+        </div>
+        <span class="badge-pill">Helpdesk</span>
+      </a>
+
+      <a href="/ai/campus-info" class="search-result-item" data-keywords="campus directory facilities labs classrooms library map contacts">
+        <span class="result-icon">🏛️</span>
+        <div class="result-info">
+          <div class="result-title">Campus Directory & Smart Facilities</div>
+          <div class="result-sub">Interactive facilities catalog, equipment in-charges & locations</div>
+        </div>
+        <span class="badge-pill">Directory</span>
+      </a>
+
+      <a href="/ai/reports" class="search-result-item" data-keywords="reports pdf institutional report analytics dean naac governance">
+        <span class="result-icon">📄</span>
+        <div class="result-info">
+          <div class="result-title">AI Institutional Reports</div>
+          <div class="result-sub">Automated multi-department executive synthesis & PDF download</div>
+        </div>
+        <span class="badge-pill">Reports</span>
+      </a>
+    </div>
+
+    <div class="search-palette-footer">
+      <span>Use <kbd>↑</kbd> <kbd>↓</kbd> to navigate</span>
+      <span><kbd>Enter</kbd> to select</span>
+      <span><kbd>Esc</kbd> to close</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,126 @@
+<%- include('../partials/head', { pageTitle: 'My Academic Timetable — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">My Weekly Academic Timetable</h1>
+          <p class="page-subtitle">Assigned Lectures, Laboratory Sessions, and Classroom Locations</p>
+        </div>
+        <div>
+          <button type="button" onclick="openModal('addScheduleModal')" class="btn btn-primary btn-sm">
+            + Add Timetable Slot
+          </button>
+        </div>
+      </div>
+
+      <!-- Days Grid (Monday to Saturday) -->
+      <div class="timetable-grid">
+        <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
+        <% days.forEach(d => { %>
+          <% const daySchedules = schedules.filter(s => s.dayOfWeek === d); %>
+          <div class="timetable-day-card">
+            <h3 class="timetable-day-title"><%= d %></h3>
+            
+            <% if (daySchedules && daySchedules.length > 0) { %>
+              <% daySchedules.forEach(slot => { %>
+                <div class="timetable-slot">
+                  <div>
+                    <div class="slot-time"><%= slot.startTime %> - <%= slot.endTime %></div>
+                    <div class="slot-title"><%= slot.subjectName %></div>
+                    <div class="slot-room"><%= slot.classroom %> • Yr <%= slot.year %> (Sec <%= slot.section %>) • ~<%= slot.studentCount %> Students</div>
+                  </div>
+                  <form action="/faculty/timetable/<%= slot.id %>/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Remove this class slot?');">
+                    <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.85rem;" title="Delete slot">
+                      ✕
+                    </button>
+                  </form>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <p style="font-size: 0.78125rem; color: var(--text-muted); padding: 0.5rem 0;">No classes scheduled.</p>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Add Timetable Slot Modal -->
+<div class="modal-overlay" id="addScheduleModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Add Timetable Slot</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/faculty/timetable" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select name="subjectName" class="form-control" required>
+            <% subjects.forEach(sub => { %>
+              <option value="<%= sub.name %>"><%= sub.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Day of Week</label>
+            <select name="dayOfWeek" class="form-control" required>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Classroom / Lab</label>
+            <input type="text" name="classroom" class="form-control" placeholder="LH-102 or Lab B-302" required />
+          </div>
+        </div>
+
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Start Time</label>
+            <input type="text" name="startTime" class="form-control" placeholder="09:00 AM" required />
+          </div>
+          <div>
+            <label class="form-label">End Time</label>
+            <input type="text" name="endTime" class="form-control" placeholder="10:00 AM" required />
+          </div>
+        </div>
+
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Year</label>
+            <input type="number" name="year" class="form-control" value="3" min="1" max="4" required />
+          </div>
+          <div>
+            <label class="form-label">Section</label>
+            <input type="text" name="section" class="form-control" value="A" required />
+          </div>
+          <div>
+            <label class="form-label">Student Count</label>
+            <input type="number" name="studentCount" class="form-control" value="60" required />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Class Slot</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

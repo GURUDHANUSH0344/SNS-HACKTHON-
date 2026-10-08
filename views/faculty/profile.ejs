@@ -1,0 +1,86 @@
+<%- include('../partials/head', { pageTitle: 'Faculty Academic Profile — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Faculty Academic Profile & Credentials</h1>
+          <p class="page-subtitle">Departmental Designation, Research Specialization, and Office Hours</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+        
+        <!-- Profile Identity Card -->
+        <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 2.2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; border: 2px solid var(--border);">
+            <%= profile ? profile.name.charAt(0) : 'F' %>
+          </div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;"><%= profile ? profile.name : 'Faculty Member' %></h2>
+          <p style="font-size: 0.875rem; color: var(--primary); font-weight: 600; margin-top: 0.2rem;"><%= profile ? profile.employeeId : 'EMP-FAC-01' %></p>
+          <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.15rem;"><%= profile ? profile.designation : 'Associate Professor' %></p>
+
+          <div style="margin: 1.5rem 0; padding-top: 1.25rem; border-top: 1px solid var(--border); text-align: left; font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <div><strong>Department:</strong> <%= profile ? profile.department : 'CSE' %></div>
+            <div><strong>Qualification:</strong> <%= profile ? profile.qualification : 'Ph.D.' %></div>
+            <div><strong>Office:</strong> <%= profile ? profile.officeLocation : 'Block B, 304' %></div>
+            <div><strong>Phone:</strong> <%= profile ? profile.phone || '+91 98765 43210' : '+91 98765 43210' %></div>
+          </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div class="card">
+          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+            ✏️ Update Professional Information
+          </h3>
+          <form action="/faculty/profile" method="POST">
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label class="form-label">Academic Designation</label>
+                <input type="text" name="designation" class="form-control" value="<%= profile ? profile.designation : 'Associate Professor' %>" required />
+              </div>
+              <div>
+                <label class="form-label">Academic Qualification</label>
+                <input type="text" name="qualification" class="form-control" value="<%= profile ? profile.qualification : 'Ph.D. in Computer Science' %>" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Research Specialization</label>
+              <input type="text" name="specialization" class="form-control" value="<%= profile ? profile.specialization : 'Machine Learning, Algorithms' %>" required />
+            </div>
+
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label class="form-label">Office Location / Cabin</label>
+                <input type="text" name="officeLocation" class="form-control" value="<%= profile ? profile.officeLocation : 'Block B, Room 304' %>" required />
+              </div>
+              <div>
+                <label class="form-label">Contact Phone</label>
+                <input type="text" name="phone" class="form-control" value="<%= profile ? profile.phone || '+91 98765 43210' : '+91 98765 43210' %>" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Professional Biography & Research Statement</label>
+              <textarea name="bio" class="form-control" style="min-height: 100px;"><%= profile ? profile.bio : '' %></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+              Save Profile Changes
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

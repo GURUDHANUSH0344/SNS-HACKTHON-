@@ -1,0 +1,122 @@
+<%- include('../partials/head', { pageTitle: 'Student Digital Profile & Portfolio — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">360° Student Identity Profile</h1>
+          <p class="page-subtitle">Personal Details, Academic Affiliations, and Institutional Portfolio Export</p>
+        </div>
+        <div>
+          <a href="/student/export" class="btn btn-primary btn-sm">
+            📥 Export Official Portfolio (.xlsx)
+          </a>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+        
+        <!-- Profile Card -->
+        <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 2.2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; border: 2px solid var(--border);">
+            <%= student.name.charAt(0) %>
+          </div>
+          <h2 style="font-size: 1.25rem; font-weight: 800;"><%= student.name %></h2>
+          <p style="font-size: 0.875rem; color: var(--primary); font-weight: 600; margin-top: 0.2rem;"><%= student.studentId %></p>
+          <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.15rem;"><%= student.course %></p>
+
+          <div style="margin: 1.5rem 0; padding-top: 1.25rem; border-top: 1px solid var(--border); display: flex; justify-content: space-around;">
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Growth Score</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary);"><%= gamification ? gamification.growthScore : 88 %></div>
+            </div>
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Streak</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--warning);"><%= gamification ? gamification.streakDays : 7 %>d 🔥</div>
+            </div>
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Rank Level</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--success);">L<%= gamification ? gamification.level : 3 %></div>
+            </div>
+          </div>
+
+          <div style="text-align: left; font-size: 0.8125rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem;">
+            <div><strong>Email:</strong> <%= student.email %></div>
+            <div><strong>Phone:</strong> <%= student.phone || 'Not Specified' %></div>
+            <div><strong>Enrolled Date:</strong> <%= student.enrollmentDate %></div>
+            <div><strong>Status:</strong> <span class="status-pill status-active"><%= student.status %></span></div>
+          </div>
+        </div>
+
+        <!-- Academic & Residential Details -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <div class="card">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+              🎓 Academic Enrollment & Cohort Details
+            </h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem;">
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Degree Program</span>
+                <div style="font-weight: 600;"><%= student.course %></div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Department</span>
+                <div style="font-weight: 600;">School of Computing & Engineering</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Current Academic Standing</span>
+                <div style="font-weight: 600;">Year <%= student.year %> • Semester <%= student.semester %> (Section <%= student.section %>)</div>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Guardian / Emergency Contact</span>
+                <div style="font-weight: 600;"><%= student.guardianName || 'Rahim Akhtar' %> (<%= student.guardianPhone || '+91 98451 99999' %>)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+              🏢 Campus Accommodation & Address
+            </h3>
+            <div style="font-size: 0.875rem; line-height: 1.6;">
+              <p><strong>Permanent / Hostel Address:</strong> <%= student.address %></p>
+              <% if (hostel) { %>
+                <div style="margin-top: 0.75rem; background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: var(--radius-sm);">
+                  <strong>Hostel Allotment:</strong> <%= hostel.block %> • Room <%= hostel.roomNumber %> • Bed <%= hostel.bedNumber %> (<%= hostel.roomType %>)
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.75rem;">
+              🏆 Achievement Badges & Honor Roll
+            </h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: #f8fafc; border: 1px solid var(--border); padding: 0.5rem 0.85rem; border-radius: 999px; font-size: 0.8125rem;">
+                <span>🏆</span> <strong>Algorithmic Prodigy</strong>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: #f8fafc; border: 1px solid var(--border); padding: 0.5rem 0.85rem; border-radius: 999px; font-size: 0.8125rem;">
+                <span>🛡️</span> <strong>Punctuality Sentinel</strong>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: #f8fafc; border: 1px solid var(--border); padding: 0.5rem 0.85rem; border-radius: 999px; font-size: 0.8125rem;">
+                <span>🚀</span> <strong>Knowledge Explorer</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

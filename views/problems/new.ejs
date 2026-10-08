@@ -1,0 +1,294 @@
+<%- include('../partials/head', { pageTitle: 'Report a Campus Issue — CampusAI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      
+      <!-- Service Desk Header -->
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-xs);">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.25rem;">
+            <h1 class="page-title" style="margin-bottom: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+              Report a Campus Issue
+            </h1>
+            <span class="status-pill status-in-progress" style="font-size: 0.7rem; font-weight: 700;">Service Desk</span>
+          </div>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Help your college identify and resolve problems faster.
+          </p>
+        </div>
+
+        <div>
+          <a href="/problems" class="btn btn-secondary btn-sm">
+            ← Back to Helpdesk
+          </a>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+        
+        <!-- Main Service Desk Form -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Campus Issue Specification</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                Please provide accurate details for prompt dispatch and SLA tracking
+              </p>
+            </div>
+            <span class="status-pill status-ai-insight">AI Auto-Classify Ready</span>
+          </div>
+
+          <div style="padding-top: 0.5rem;">
+            <form method="POST" action="/problems" enctype="multipart/form-data" id="reportProblemForm">
+              
+              <div class="form-group">
+                <label class="form-label" for="problemTitle">Issue Title *</label>
+                <input type="text" name="title" id="problemTitle" class="form-control" placeholder="e.g. Wi-Fi unavailable in Block B 2nd floor" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="problemDescription">Description *</label>
+                <textarea name="description" id="problemDescription" rows="4" class="form-control" placeholder="Describe the symptom, equipment affected, and operational impact..." required></textarea>
+              </div>
+
+              <!-- AI Auto-Classify Callout (Clean Information Style, No Neon) -->
+              <div style="background: var(--soft-surface); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: var(--radius-sm); padding: 1rem 1.15rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <strong style="font-size: 0.8125rem; color: var(--text-main);">CampusAI Auto-Classifier</strong>
+                    <span class="status-pill status-ai-insight" style="font-size: 0.65rem;">NLP Assist</span>
+                  </div>
+                  <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">
+                    Automatically suggest category, priority, and assign responsible department from description.
+                  </p>
+                </div>
+                <button type="button" id="btnAutoClassify" class="btn btn-secondary btn-sm" onclick="triggerAIClassify()">
+                  Auto-Detect Category & Dept
+                </button>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label" for="problemCategory">Category *</label>
+                  <select name="category" id="problemCategory" class="form-control" required>
+                    <option value="Electrical">Electrical</option>
+                    <option value="Network">Network & IT Infrastructure</option>
+                    <option value="Laboratory">Laboratory & Equipment</option>
+                    <option value="Hostel">Hostel & Housing</option>
+                    <option value="Infrastructure">Infrastructure & Civil</option>
+                    <option value="Transport">Transport & Fleet</option>
+                    <option value="Cleanliness">Cleanliness & Sanitation</option>
+                    <option value="Other">Other Campus Support</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="problemPriority">Priority *</label>
+                  <select name="priority" id="problemPriority" class="form-control" required>
+                    <option value="Low">Low (Standard SLA - 48h)</option>
+                    <option value="Medium" selected>Medium (Within 24 Hours)</option>
+                    <option value="High">High (Urgent Attention - 12h)</option>
+                    <option value="Critical">Critical (Immediate Escalation - 4h)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label" for="problemDept">Assigned Department (Optional)</label>
+                  <select name="departmentId" id="problemDept" class="form-control">
+                    <option value="">Let CampusAI Auto-Route Department</option>
+                    <% departments.forEach(d => { %>
+                      <option value="<%= d.id %>"><%= d.name %> (SLA: <%= d.slaHours %>h)</option>
+                    <% }) %>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="problemSubcategory">Subcategory / Equipment Tag</label>
+                  <input type="text" name="subcategory" id="problemSubcategory" class="form-control" placeholder="e.g. Switch, Router, Projector, AC" />
+                </div>
+              </div>
+
+              <!-- Location Specification Group -->
+              <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem;">
+                <h4 style="font-size: 0.875rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.85rem;">
+                  Location Specification
+                </h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+                  <div class="form-group">
+                    <label class="form-label">Building / Facility *</label>
+                    <input type="text" name="building" id="problemBuilding" class="form-control" placeholder="Block B" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Block / Wing *</label>
+                    <input type="text" name="block" class="form-control" placeholder="North Wing" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Floor *</label>
+                    <input type="text" name="floor" class="form-control" placeholder="2nd Floor" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Room / Lab Number</label>
+                    <input type="text" name="room" class="form-control" placeholder="Lab 204" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Location Landmark / Specific Area</label>
+                  <input type="text" name="locationDescription" class="form-control" placeholder="e.g. Near west staircase switch cabinet" />
+                </div>
+              </div>
+
+              <div class="form-group" style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <label class="form-label">Attachment (Photos / Evidence)</label>
+                <input type="file" name="attachments" class="form-control" multiple accept="image/*,video/*,.pdf" />
+                <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.25rem; display: block;">
+                  Supported formats: JPG, PNG, MP4, PDF up to 10MB.
+                </small>
+              </div>
+
+              <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <!-- Primary Button: Navy background, White text, 8px radius, no gradient -->
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 0.9375rem;">
+                  Submit Issue
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- Service Desk Guidelines & Emergency Sidepanel -->
+        <div>
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title">Resolution Workflow</h3>
+            </div>
+            <div style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.55;">
+              <p style="margin-bottom: 0.75rem;">
+                CampusAI automatically orchestrates your ticket through standard service desk stages:
+              </p>
+              <div style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 0.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-weight: 700; color: var(--primary);">1.</span>
+                  <span><strong>AI Classification</strong> — Priority & category mapped</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-weight: 700; color: var(--primary);">2.</span>
+                  <span><strong>Department Routing</strong> — Dispatched to lead staff</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-weight: 700; color: var(--primary);">3.</span>
+                  <span><strong>SLA Countdown</strong> — Resolution timer active</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-weight: 700; color: var(--primary);">4.</span>
+                  <span><strong>Verification</strong> — Reporter confirms repair</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Campus Emergency Lines</h3>
+            </div>
+            <div style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;">
+              <div style="padding: 0.4rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                <span>Power & High Voltage:</span>
+                <strong style="color: var(--text-main);">Ext 104</strong>
+              </div>
+              <div style="padding: 0.4rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                <span>IT Network NOC:</span>
+                <strong style="color: var(--text-main);">Ext 108</strong>
+              </div>
+              <div style="padding: 0.4rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+                <span>Campus Health Center:</span>
+                <strong style="color: var(--text-main);">Ext 101</strong>
+              </div>
+              <div style="padding: 0.4rem 0; display: flex; justify-content: space-between;">
+                <span>Campus Security & Gate:</span>
+                <strong style="color: var(--text-main);">Ext 100</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  async function triggerAIClassify() {
+    const title = document.getElementById('problemTitle').value;
+    const description = document.getElementById('problemDescription').value;
+    const building = document.getElementById('problemBuilding').value;
+
+    if (!title && !description) {
+      alert('Please enter an issue title or description first.');
+      return;
+    }
+
+    const btn = document.getElementById('btnAutoClassify');
+    const oldText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Classifying...';
+
+    try {
+      const res = await fetch('/problems/ai-classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, location: building })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        if (data.category) {
+          const catSelect = document.getElementById('problemCategory');
+          for (let opt of catSelect.options) {
+            if (opt.value.toLowerCase().includes(data.category.toLowerCase())) {
+              catSelect.value = opt.value;
+              break;
+            }
+          }
+        }
+        if (data.priority) {
+          document.getElementById('problemPriority').value = data.priority;
+        }
+        if (data.subcategory) {
+          document.getElementById('problemSubcategory').value = data.subcategory;
+        }
+        if (data.department) {
+          const deptSelect = document.getElementById('problemDept');
+          for (let opt of deptSelect.options) {
+            if (opt.textContent.toLowerCase().includes(data.department.toLowerCase().slice(0, 8))) {
+              deptSelect.value = opt.value;
+              break;
+            }
+          }
+        }
+        alert(`CampusAI Classification Complete:\n• Category: ${data.category || 'General'}\n• Priority: ${data.priority || 'Medium'}\n• Department: ${data.department || 'Auto-Routed'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Classification finished with standard heuristic defaults.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

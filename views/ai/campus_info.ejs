@@ -1,0 +1,130 @@
+<%- include('../partials/head', { pageTitle: 'Campus Directory & Smart Facilities — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Campus Directory & Smart Facilities</h1>
+          <p class="page-subtitle">Interactive Map, Laboratories, Smart Classrooms, Amenities & Facility In-Charges</p>
+        </div>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+          <form method="GET" action="/ai/campus-info" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="flex: 2; min-width: 260px;">
+              <input 
+                type="text" 
+                id="campusSearchInput" 
+                name="search" 
+                value="<%= search %>" 
+                placeholder="Search by facility name, block, lab, faculty in-charge, or tags..." 
+                class="form-control"
+              />
+            </div>
+            <div style="flex: 1; min-width: 180px;">
+              <select name="type" class="form-control" onchange="this.form.submit()">
+                <option value="all" <%= selectedType === 'all' ? 'selected' : '' %>>All Facility Types</option>
+                <option value="Laboratory" <%= selectedType === 'Laboratory' ? 'selected' : '' %>>Laboratories</option>
+                <option value="Classroom" <%= selectedType === 'Classroom' ? 'selected' : '' %>>Smart Classrooms</option>
+                <option value="Auditorium" <%= selectedType === 'Auditorium' ? 'selected' : '' %>>Auditoriums & Halls</option>
+                <option value="Library" <%= selectedType === 'Library' ? 'selected' : '' %>>Libraries & Media</option>
+                <option value="Sports" <%= selectedType === 'Sports' ? 'selected' : '' %>>Sports & Recreation</option>
+                <option value="Cafeteria" <%= selectedType === 'Cafeteria' ? 'selected' : '' %>>Cafeterias & Dining</option>
+                <option value="Hostel" <%= selectedType === 'Hostel' ? 'selected' : '' %>>Hostels & Quarters</option>
+                <option value="Administrative" <%= selectedType === 'Administrative' ? 'selected' : '' %>>Administrative Offices</option>
+              </select>
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary">Search Directory</button>
+              <% if (search || selectedType !== 'all') { %>
+                <a href="/ai/campus-info" class="btn btn-secondary">Clear</a>
+              <% } %>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Facility Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        <% if (entities && entities.length > 0) { %>
+          <% entities.forEach(ent => { %>
+            <div class="card facility-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="card-header" style="align-items: flex-start;">
+                <div>
+                  <span class="badge badge-info" style="font-size: 0.72rem; text-transform: uppercase;">
+                    <%= ent.type %>
+                  </span>
+                  <h3 class="card-title" style="margin-top: 0.35rem; font-size: 1.15rem;"><%= ent.name %></h3>
+                </div>
+                <% if (ent.capacity) { %>
+                  <span class="badge badge-secondary" style="font-size: 0.75rem;">Cap: <%= ent.capacity %></span>
+                <% } %>
+              </div>
+
+              <div class="card-body" style="flex: 1;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 1rem;">
+                  <%= ent.description %>
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; background: #f8fafc; padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                  <div>
+                    <strong>📍 Location:</strong> Block <%= ent.block %>, Floor <%= ent.floor %>, Room <%= ent.roomNumber || 'N/A' %>
+                  </div>
+                  <% if (ent.inCharge) { %>
+                    <div>
+                      <strong>👤 In-Charge:</strong> <%= ent.inCharge %>
+                    </div>
+                  <% } %>
+                  <% if (ent.contactEmail) { %>
+                    <div>
+                      <strong>✉️ Email:</strong> <a href="mailto:<%= ent.contactEmail %>" style="color: var(--primary);"><%= ent.contactEmail %></a>
+                    </div>
+                  <% } %>
+                  <% if (ent.operatingHours) { %>
+                    <div>
+                      <strong>🕒 Hours:</strong> <%= ent.operatingHours %>
+                    </div>
+                  <% } %>
+                </div>
+
+                <% if (ent.tags) { %>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                    <% ent.tags.split(',').forEach(tag => { %>
+                      <span style="background: #e2e8f0; color: #334155; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">
+                        #<%= tag.trim() %>
+                      </span>
+                    <% }) %>
+                  </div>
+                <% } %>
+              </div>
+
+              <div class="card-footer" style="background: #ffffff; border-top: 1px solid var(--border-color); padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Campus AI Geotagged</span>
+                <a href="/problems/new?building=<%= encodeURIComponent(ent.name) %>&block=<%= encodeURIComponent(ent.block) %>&room=<%= encodeURIComponent(ent.roomNumber || '') %>" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                  Report Issue Here →
+                </a>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏫</div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Facilities Found</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Try adjusting your search criteria or filter type.</p>
+            <a href="/ai/campus-info" class="btn btn-primary">Reset Directory Filters</a>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

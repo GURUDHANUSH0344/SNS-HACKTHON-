@@ -1,0 +1,97 @@
+<%- include('../partials/head', { pageTitle: 'Student 360° Directory — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Student 360° Comprehensive Directory</h1>
+          <p class="page-subtitle">Deep Academic Records, Longitudinal Attendance, and Student History</p>
+        </div>
+      </div>
+
+      <!-- Search & Course Filters -->
+      <div class="card" style="margin-bottom: 1.25rem; padding: 1rem 1.25rem;">
+        <form action="/faculty/students" method="GET" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+          <div style="display: flex; gap: 1rem; flex: 1; min-width: 280px;">
+            <input type="text" name="search" class="form-control" placeholder="Search by student ID, name, email..." value="<%= search %>" style="max-width: 340px;" />
+            <select name="course" class="form-control" style="max-width: 240px;" onchange="this.form.submit()">
+              <option value="all" <%= selectedCourse === 'all' ? 'selected' : '' %>>All Cohorts</option>
+              <option value="Computer Science" <%= selectedCourse.includes('Computer Science') ? 'selected' : '' %>>Computer Science</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/faculty/students" class="btn btn-secondary btn-sm">Reset</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Students 360 Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem;">
+        <% students.forEach(st => { %>
+          <% 
+            const examsList = st.exams || [];
+            const avgScore = examsList.length > 0 ? Math.round(examsList.reduce((a,b)=>a+(b.percentage||0),0)/examsList.length) : 78;
+            const attList = st.attendanceRecords || [];
+            const presCount = attList.filter(a => a.status === 'Present' || a.status === 'Late').length;
+            const attRate = attList.length > 0 ? Math.round((presCount / attList.length) * 100) : 85;
+          %>
+          <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <div>
+                  <h3 style="font-size: 1.125rem; font-weight: 700;"><%= st.name %></h3>
+                  <span class="font-mono" style="font-size: 0.8125rem; color: var(--primary); font-weight: 600;"><%= st.studentId %></span>
+                </div>
+                <span class="status-pill status-<%= attRate >= 75 ? 'paid' : 'critical' %>">
+                  <%= attRate %>% Attendance
+                </span>
+              </div>
+
+              <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">
+                <div><strong>Program:</strong> <%= st.course %> (Yr <%= st.year %>, Sem <%= st.semester %>, Sec <%= st.section %>)</div>
+                <div><strong>Email:</strong> <%= st.email %></div>
+                <div><strong>Phone:</strong> <%= st.phone || 'N/A' %></div>
+              </div>
+
+              <!-- Quick Academic Progress -->
+              <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem;">
+                  <span>Exam Performance</span>
+                  <span>Avg: <%= avgScore %>%</span>
+                </div>
+                <% if (examsList.length > 0) { %>
+                  <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem;">
+                    <% examsList.slice(0, 2).forEach(e => { %>
+                      <div style="display: flex; justify-content: space-between;">
+                        <span><%= e.subjectName %></span>
+                        <strong><%= e.marksObtained %>/<%= e.maxMarks %> (<%= e.grade %>)</strong>
+                      </div>
+                    <% }) %>
+                  </div>
+                <% } else { %>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">No exam records available.</span>
+                <% } %>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.75rem;">
+              <span style="color: var(--text-muted);">Enrolled <%= st.enrollmentDate %></span>
+              <a href="/faculty/attendance" class="btn btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+                Inspect Roster
+              </a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,253 @@
+<%- include('partials/head', { pageTitle: 'Sign In — CampusAI University Portal' }) %>
+
+<div class="auth-split-layout">
+  <!-- Left: Institutional Brand Side -->
+  <div class="auth-brand-pane">
+    <div class="auth-brand-content">
+      <div class="auth-brand-header">
+        <div class="auth-brand-logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        </div>
+        <div class="auth-brand-name">CampusAI</div>
+      </div>
+
+      <div class="auth-brand-hero">
+        <div class="auth-tagline-badge">Institutional Operating System</div>
+        <h1 class="auth-hero-title">
+          Understand. Predict.<br/>
+          Solve. Improve.
+        </h1>
+        <p class="auth-hero-subtitle">
+          AI-powered intelligent campus operating system for students, faculty, departments, and administrators.
+        </p>
+
+        <div class="auth-value-props">
+          <div class="value-prop-item">
+            <div class="value-prop-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="value-prop-title">Predictive Academic Triage</div>
+              <div class="value-prop-desc">Explainable early warning and risk simulation across cohorts.</div>
+            </div>
+          </div>
+
+          <div class="value-prop-item">
+            <div class="value-prop-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div class="value-prop-title">Automated Campus Dispatch</div>
+              <div class="value-prop-desc">Natural language triage, spatial clustering, and SLA tracking.</div>
+            </div>
+          </div>
+
+          <div class="value-prop-item">
+            <div class="value-prop-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <div>
+              <div class="value-prop-title">Institutional Intelligence</div>
+              <div class="value-prop-desc">Live command centers for administrators, HODs, and deans.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-brand-footer">
+        <span>CampusAI Enterprise Platform • Production Grade</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Sign In Form Pane -->
+  <div class="auth-form-pane">
+    <div class="auth-card-institutional">
+      
+      <div class="auth-form-header">
+        <h2 class="auth-form-title">Institutional Sign In</h2>
+        <p class="auth-form-subtitle">Access your role-based academic or administrative portal</p>
+      </div>
+
+      <!-- Error & Success Alerts -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger" style="margin-bottom: 1.25rem;">
+          <%= error %>
+        </div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success" style="margin-bottom: 1.25rem;">
+          <%= success %>
+        </div>
+      <% } %>
+
+      <!-- Portal Role Selection Tabs -->
+      <div class="auth-tabs" id="loginTabs">
+        <button type="button" class="auth-tab-btn active" onclick="switchLoginTab('student')" id="tabStudent">
+          Student Portal
+        </button>
+        <button type="button" class="auth-tab-btn" onclick="switchLoginTab('faculty')" id="tabFaculty">
+          Faculty
+        </button>
+        <button type="button" class="auth-tab-btn" onclick="switchLoginTab('admin')" id="tabAdmin">
+          Admin
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form action="/auth/login" method="POST" id="loginForm">
+        <input type="hidden" name="role" id="roleInput" value="<%= typeof tab !== 'undefined' ? tab : 'student' %>" />
+
+        <div class="form-group">
+          <label class="form-label" for="email">Institutional Email</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="name@campusai.edu" required />
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="form-label" for="password" style="margin-bottom: 0;">Password</label>
+            <a href="#" style="font-size: 0.75rem; color: var(--secondary-blue); text-decoration: none;" onclick="alert('For demonstration access, please select one of the 1-click role logins below.'); return false;">Forgot password?</a>
+          </div>
+          <div class="password-input-wrapper">
+            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required />
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" aria-label="Toggle password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.9375rem; margin-top: 0.5rem; justify-content: center;">
+          <% if (typeof tab !== 'undefined' && (tab === 'faculty' || tab === 'teacher')) { %>
+            Sign In as Faculty
+          <% } else if (typeof tab !== 'undefined' && tab === 'admin') { %>
+            Sign In as Admin
+          <% } else { %>
+            Sign In as Student
+          <% } %>
+        </button>
+      </form>
+
+      <!-- One-Click Demo Credentials for Evaluators -->
+      <div class="auth-demo-grid">
+        <div class="auth-demo-label">One-Click Demonstration Credentials</div>
+        <div class="auth-demo-buttons">
+          <button type="button" onclick="fillDemo('student@campusai.edu', 'student123', 'student')" class="btn btn-secondary btn-sm" title="Demo Student Account">
+            Student
+          </button>
+          <button type="button" onclick="fillDemo('faculty@campusai.edu', 'faculty123', 'faculty')" class="btn btn-secondary btn-sm" title="Demo Faculty Account">
+            Faculty
+          </button>
+          <button type="button" onclick="fillDemo('admin@campusai.edu', 'admin123', 'admin')" class="btn btn-secondary btn-sm" title="Demo Admin Account">
+            Admin
+          </button>
+        </div>
+      </div>
+
+      <!-- Role-Aware Registration Section -->
+      <div class="auth-switch-link" id="authSwitchSection">
+        <span id="authSwitchPrompt">
+          <% if (typeof tab !== 'undefined' && (tab === 'faculty' || tab === 'teacher')) { %>
+            Don't have a faculty account?
+          <% } else if (typeof tab !== 'undefined' && tab === 'admin') { %>
+            Need an administrator account?
+          <% } else { %>
+            Don't have an institutional account?
+          <% } %>
+        </span>
+        <a href="/auth/register?role=<%= typeof tab !== 'undefined' && (tab === 'faculty' || tab === 'teacher') ? 'faculty' : (typeof tab !== 'undefined' && tab === 'admin' ? 'admin' : 'student') %>" id="authSwitchLink" style="margin-left: 0.25rem;">
+          <% if (typeof tab !== 'undefined' && (tab === 'faculty' || tab === 'teacher')) { %>
+            Create Faculty Account
+          <% } else if (typeof tab !== 'undefined' && tab === 'admin') { %>
+            Create Admin Account
+          <% } else { %>
+            Create Student Account
+          <% } %>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchLoginTab(role) {
+    if (!role) role = 'student';
+    role = role.toLowerCase();
+    if (role === 'teacher') role = 'faculty';
+
+    document.getElementById('roleInput').value = role;
+    
+    const tabs = ['student', 'faculty', 'admin'];
+    tabs.forEach(t => {
+      const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn) {
+        if (t === role) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    });
+
+    const submitBtn = document.getElementById('submitBtn');
+    const switchPrompt = document.getElementById('authSwitchPrompt');
+    const switchLink = document.getElementById('authSwitchLink');
+
+    if (role === 'student') {
+      submitBtn.textContent = 'Sign In as Student';
+      if (switchPrompt) switchPrompt.textContent = "Don't have an institutional account?";
+      if (switchLink) {
+        switchLink.textContent = 'Create Student Account';
+        switchLink.href = '/auth/register?role=student';
+      }
+    } else if (role === 'faculty') {
+      submitBtn.textContent = 'Sign In as Faculty';
+      if (switchPrompt) switchPrompt.textContent = "Don't have a faculty account?";
+      if (switchLink) {
+        switchLink.textContent = 'Create Faculty Account';
+        switchLink.href = '/auth/register?role=faculty';
+      }
+    } else if (role === 'admin') {
+      submitBtn.textContent = 'Sign In as Admin';
+      if (switchPrompt) switchPrompt.textContent = "Need an administrator account?";
+      if (switchLink) {
+        switchLink.textContent = 'Create Admin Account';
+        switchLink.href = '/auth/register?role=admin';
+      }
+    }
+  }
+
+  function fillDemo(email, pass, role) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pass;
+    switchLoginTab(role);
+  }
+
+  function togglePasswordVisibility(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+    } else {
+      input.type = 'password';
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+  }
+
+  // Init with query param if present
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialRole = urlParams.get('role') || urlParams.get('tab') || '<%= typeof tab !== "undefined" ? tab : "student" %>';
+  if (initialRole) {
+    switchLoginTab(initialRole);
+  }
+  const prefillEmail = urlParams.get('email');
+  if (prefillEmail) {
+    document.getElementById('email').value = prefillEmail;
+  }
+</script>
+
+<%- include('partials/footer') %>

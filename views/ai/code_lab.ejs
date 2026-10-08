@@ -1,0 +1,326 @@
+<%- include('../partials/head') %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <!-- Code Lab Header Banner -->
+      <div class="page-header-card mb-4" style="background: linear-gradient(135deg, #0F2747 0%, #1E4E8C 100%); color: #FFFFFF; padding: 1.5rem 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(15, 39, 71, 0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem;">
+              <span style="font-size: 1.75rem;">💻</span>
+              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">AI Code Lab & Algorithmic Sandbox</h1>
+              <span style="background: rgba(255,255,255,0.2); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">Supabase Cloud Persistence</span>
+            </div>
+            <p style="margin: 0; color: #CBD5E1; font-size: 0.875rem;">
+              Write, test, and optimize algorithmic programs with server-side sandboxing and AI architectural feedback.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn btn-light btn-sm" onclick="createNewSession()" title="Create New Session">
+              <span>+ New Session</span>
+            </button>
+            <button class="btn btn-outline-light btn-sm" onclick="saveCurrentSession()" id="saveSessionBtn" title="Save Session to Supabase Cloud">
+              <span>💾 Save Cloud Draft</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workspace Grid: Editor Left, Execution & AI Right -->
+      <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.5rem; align-items: start;">
+        
+        <!-- Left Column: Code Editor & Controls -->
+        <div class="card p-0" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+          
+          <!-- Toolbar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <input 
+                type="text" 
+                id="sessionTitleInput" 
+                value="<%= activeSession ? activeSession.title : 'Two Sum Algorithm' %>" 
+                style="border: 1px solid transparent; background: transparent; font-weight: 600; font-size: 0.95rem; color: #172033; padding: 0.2rem 0.4rem; border-radius: 4px;"
+                onfocus="this.style.borderColor='#CBD5E1'; this.style.background='#FFFFFF';"
+                onblur="this.style.borderColor='transparent'; this.style.background='transparent';"
+              />
+              <select id="codeLanguageSelect" class="form-select form-select-sm" style="width: auto; font-size: 0.8125rem; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid #CBD5E1;">
+                <option value="javascript">JavaScript (Node.js VM)</option>
+                <option value="python">Python 3</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-primary btn-sm" id="runCodeBtn" onclick="executeCurrentCode()">
+                <span>▶ Run Code</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Editor Textarea -->
+          <div style="position: relative;">
+            <textarea 
+              id="codeEditor" 
+              rows="18" 
+              spellcheck="false" 
+              style="width: 100%; border: none; outline: none; padding: 1rem 1.25rem; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.875rem; line-height: 1.5; color: #0F172A; background: #FAFAFA; resize: vertical;"
+            ><%= activeSession ? activeSession.source_code : defaultTemplate %></textarea>
+          </div>
+
+          <!-- Standard Input Stdin Section -->
+          <div style="padding: 0.75rem 1.25rem; background: #F8FAFC; border-top: 1px solid #E2E8F0;">
+            <label style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #64748B; margin-bottom: 0.25rem; display: block;">Custom Standard Input (stdin)</label>
+            <textarea id="stdinInput" rows="2" style="width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 0.4rem 0.6rem; font-family: monospace; font-size: 0.8125rem; outline: none;" placeholder="Optional inputs for standard input..."><%= activeSession ? activeSession.stdin : '' %></textarea>
+          </div>
+        </div>
+
+        <!-- Right Column: Results, AI Intelligence & Test Cases -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          
+          <!-- Output Console Card -->
+          <div class="card p-0" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; background: #F8FAFC; border-bottom: 1px solid #E2E8F0;">
+              <span style="font-weight: 600; font-size: 0.8125rem; color: #475569; display: flex; align-items: center; gap: 0.5rem;">
+                <span>📟 Terminal Output</span>
+                <span id="execStatusBadge" class="badge" style="background: #E2E8F0; color: #475569; font-size: 0.7rem;">Idle</span>
+              </span>
+              <span id="execMetricsText" style="font-size: 0.75rem; color: #64748B;">-- ms</span>
+            </div>
+            <div style="background: #0F172A; color: #E2E8F0; padding: 1rem; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.8125rem; min-height: 150px; max-height: 240px; overflow-y: auto; white-space: pre-wrap;" id="outputConsoleArea">
+// Execution output will appear here...
+            </div>
+          </div>
+
+          <!-- AI Code Intelligence Card -->
+          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+              <h3 style="font-size: 0.95rem; font-weight: 700; color: #0F2747; margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🧠 Gemini Code Intelligence</span>
+              </h3>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin-bottom: 0.8rem;">
+              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('explain')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
+                📖 Explain
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('optimize')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
+                ⚡ Optimize
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('debug')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
+                🐛 Debug
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="triggerAiAction('complexity')" style="font-size: 0.75rem; padding: 0.35rem 0.2rem;">
+                📊 Big-O
+              </button>
+            </div>
+
+            <div id="aiAnalysisResultArea" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0.9rem; font-size: 0.8125rem; color: #334155; line-height: 1.5; min-height: 100px; max-height: 250px; overflow-y: auto; white-space: pre-wrap;">
+Select an AI action above to inspect algorithmic structure, runtime performance, or detect potential corner-case bugs.
+            </div>
+          </div>
+
+          <!-- Test Cases Card -->
+          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h3 style="font-size: 0.95rem; font-weight: 700; color: #0F2747; margin: 0;">
+                <span>🧪 Automated Test Suite</span>
+              </h3>
+              <button class="btn btn-sm btn-outline-primary" onclick="runAutomatedTests()" style="font-size: 0.75rem;">Run Suite</button>
+            </div>
+            <div id="testSuiteResultsList" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8125rem;">
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 0.5rem 0.75rem;">
+                <div style="display: flex; justify-content: space-between; color: #475569; font-weight: 600;">
+                  <span>Case 1: Standard Input</span>
+                  <span class="badge bg-secondary" style="font-size: 0.65rem;">Ready</span>
+                </div>
+                <div style="color: #64748B; font-size: 0.75rem; margin-top: 0.2rem;">Validates nominal runtime execution path without errors.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script>
+let currentSessionId = '<%= activeSession ? activeSession.id : "" %>';
+
+async function executeCurrentCode() {
+  const code = document.getElementById('codeEditor').value;
+  const lang = document.getElementById('codeLanguageSelect').value;
+  const stdin = document.getElementById('stdinInput').value;
+  const consoleArea = document.getElementById('outputConsoleArea');
+  const badge = document.getElementById('execStatusBadge');
+  const metrics = document.getElementById('execMetricsText');
+  const runBtn = document.getElementById('runCodeBtn');
+
+  runBtn.disabled = true;
+  runBtn.innerHTML = '<span>⏳ Running...</span>';
+  badge.textContent = 'Running';
+  badge.style.background = '#FEF3C7';
+  badge.style.color = '#92400E';
+
+  try {
+    const res = await fetch('/api/code-lab/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceCode: code,
+        language: lang,
+        stdin: stdin,
+        sessionId: currentSessionId || null
+      })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      if (data.stderr) {
+        consoleArea.textContent = data.stdout ? data.stdout + '\n' + data.stderr : data.stderr;
+        badge.textContent = data.status === 'timeout' ? 'Timeout' : 'Runtime Error';
+        badge.style.background = '#FEE2E2';
+        badge.style.color = '#991B1B';
+      } else {
+        consoleArea.textContent = data.stdout || '(Program completed with no console output)';
+        badge.textContent = 'Completed (0)';
+        badge.style.background = '#DCFCE7';
+        badge.style.color = '#166534';
+      }
+      metrics.textContent = (data.executionTimeMs || 0) + ' ms';
+    } else {
+      consoleArea.textContent = 'Execution Error: ' + (data.error || 'Server rejected execution');
+      badge.textContent = 'Failed';
+      badge.style.background = '#FEE2E2';
+      badge.style.color = '#991B1B';
+    }
+  } catch (err) {
+    consoleArea.textContent = 'Network / Execution Exception: ' + err.message;
+    badge.textContent = 'Error';
+    badge.style.background = '#FEE2E2';
+  } finally {
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<span>▶ Run Code</span>';
+  }
+}
+
+async function triggerAiAction(actionType) {
+  const code = document.getElementById('codeEditor').value;
+  const lang = document.getElementById('codeLanguageSelect').value;
+  const resultArea = document.getElementById('aiAnalysisResultArea');
+
+  resultArea.textContent = '🧠 Analyzing with Gemini AI model... Please wait...';
+
+  try {
+    const res = await fetch('/api/code-lab/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceCode: code,
+        language: lang,
+        analysisType: actionType,
+        sessionId: currentSessionId || null
+      })
+    });
+    const data = await res.json();
+
+    if (data.success && data.analysis) {
+      resultArea.textContent = data.analysis.summary;
+    } else {
+      resultArea.textContent = 'AI Analysis unavailable: ' + (data.error || 'Unknown error');
+    }
+  } catch (err) {
+    resultArea.textContent = 'Error contacting AI Service: ' + err.message;
+  }
+}
+
+async function saveCurrentSession() {
+  const title = document.getElementById('sessionTitleInput').value;
+  const lang = document.getElementById('codeLanguageSelect').value;
+  const code = document.getElementById('codeEditor').value;
+  const stdin = document.getElementById('stdinInput').value;
+  const saveBtn = document.getElementById('saveSessionBtn');
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    if (currentSessionId) {
+      const res = await fetch('/api/code-lab/sessions/' + currentSessionId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, language: lang, source_code: code, stdin })
+      });
+      const data = await res.json();
+      if (data.success) {
+        saveBtn.textContent = '✓ Saved Cloud Draft';
+        setTimeout(() => { saveBtn.textContent = '💾 Save Cloud Draft'; }, 2000);
+      }
+    } else {
+      const res = await fetch('/api/code-lab/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, language: lang, source_code: code })
+      });
+      const data = await res.json();
+      if (data.success && data.session) {
+        currentSessionId = data.session.id;
+        saveBtn.textContent = '✓ Saved Cloud Draft';
+        setTimeout(() => { saveBtn.textContent = '💾 Save Cloud Draft'; }, 2000);
+      }
+    }
+  } catch (e) {
+    alert('Failed to save session: ' + e.message);
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+async function createNewSession() {
+  currentSessionId = '';
+  document.getElementById('sessionTitleInput').value = 'Algorithm Session ' + new Date().toLocaleTimeString();
+  document.getElementById('codeEditor').value = '// Write your solution here...\n';
+  document.getElementById('outputConsoleArea').textContent = '// Console ready.\n';
+}
+
+async function runAutomatedTests() {
+  const code = document.getElementById('codeEditor').value;
+  const lang = document.getElementById('codeLanguageSelect').value;
+  const listArea = document.getElementById('testSuiteResultsList');
+
+  listArea.innerHTML = '<div style="color: #64748B;">Running test cases...</div>';
+
+  try {
+    const res = await fetch('/api/code-lab/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceCode: code,
+        language: lang,
+        testCases: [
+          { input: '', expected_output: '' }
+        ]
+      })
+    });
+    const data = await res.json();
+
+    if (data.success && data.testResults) {
+      const tr = data.testResults;
+      listArea.innerHTML = `
+        <div style="background: ${tr.allPassed ? '#DCFCE7' : '#FEE2E2'}; border-radius: 6px; padding: 0.5rem 0.75rem; color: ${tr.allPassed ? '#166534' : '#991B1B'}; font-weight: 600;">
+          Suite Result: ${tr.passed} / ${tr.total} Test Cases Passed
+        </div>
+      `;
+    }
+  } catch (err) {
+    listArea.innerHTML = `<div style="color: #DC2626;">Failed to run tests: ${err.message}</div>`;
+  }
+}
+</script>

@@ -1,0 +1,641 @@
+<%- include('partials/head', { pageTitle: 'Institutional Registration — CampusAI University Portal' }) %>
+
+<div class="auth-register-container">
+  <div class="auth-register-card">
+
+    <!-- CampusAI Institutional Brand Header -->
+    <div class="auth-header-brand">
+      <div class="auth-header-brand-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      </div>
+      <div class="auth-header-brand-info">
+        <span class="auth-header-brand-name">CampusAI</span>
+        <span class="auth-header-brand-sub">Institutional Academic & Administrative Portal</span>
+      </div>
+    </div>
+
+    <% if (typeof successState !== 'undefined' && successState) { %>
+      <!-- Successful Registration State -->
+      <div class="registration-success-pane">
+        <div class="registration-success-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+          Account created successfully.
+        </h2>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          Your CampusAI account is ready.
+        </p>
+
+        <div class="registration-summary-box">
+          <div class="registration-summary-row">
+            <span class="registration-summary-label">Account Holder</span>
+            <span class="registration-summary-val"><%= registeredUser.name %></span>
+          </div>
+          <div class="registration-summary-row">
+            <span class="registration-summary-label">Assigned Role</span>
+            <span class="registration-summary-val" style="text-transform: capitalize;"><%= registeredUser.role === 'teacher' ? 'Faculty' : registeredUser.role %></span>
+          </div>
+          <div class="registration-summary-row">
+            <span class="registration-summary-label">Institutional Email</span>
+            <span class="registration-summary-val"><%= registeredUser.email %></span>
+          </div>
+          <% if (registeredUser.identifier) { %>
+            <div class="registration-summary-row">
+              <span class="registration-summary-label">Institutional ID</span>
+              <span class="registration-summary-val"><%= registeredUser.identifier %></span>
+            </div>
+          <% } %>
+          <div class="registration-summary-row">
+            <span class="registration-summary-label">Department</span>
+            <span class="registration-summary-val"><%= registeredUser.department %></span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
+          <a href="/auth/login?role=<%= registeredUser.role === 'teacher' ? 'faculty' : registeredUser.role %>&email=<%= encodeURIComponent(registeredUser.email) %>" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-weight: 600;">
+            Sign In as <%= registeredUser.role === 'teacher' ? 'Faculty' : (registeredUser.role === 'admin' ? 'Admin' : 'Student') %>
+          </a>
+          <a href="/auth/login?role=<%= registeredUser.role === 'teacher' ? 'faculty' : registeredUser.role %>" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-weight: 600;">
+            Go to Login
+          </a>
+        </div>
+      </div>
+
+    <% } else { %>
+
+      <!-- Role Selection Tabs -->
+      <div class="auth-tabs" id="registerTabs" style="margin-bottom: 1.25rem;">
+        <button type="button" class="auth-tab-btn <%= (typeof currentRole === 'undefined' || currentRole === 'student') ? 'active' : '' %>" onclick="selectRole('student')" id="tabStudent">
+          Student Portal
+        </button>
+        <button type="button" class="auth-tab-btn <%= (typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher')) ? 'active' : '' %>" onclick="selectRole('faculty')" id="tabFaculty">
+          Faculty
+        </button>
+        <button type="button" class="auth-tab-btn <%= (typeof currentRole !== 'undefined' && currentRole === 'admin') ? 'active' : '' %>" onclick="selectRole('admin')" id="tabAdmin">
+          Admin
+        </button>
+      </div>
+
+      <!-- Role Indicator & Dynamic Header -->
+      <div class="auth-role-indicator-wrap">
+        <span class="auth-role-badge" id="roleBadge">
+          <span class="auth-role-badge-dot"></span>
+          <span id="roleBadgeText">
+            <% if (typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher')) { %>
+              ROLE • Faculty
+            <% } else if (typeof currentRole !== 'undefined' && currentRole === 'admin') { %>
+              ROLE • Administrator
+            <% } else { %>
+              ROLE • Student
+            <% } %>
+          </span>
+        </span>
+        <span style="font-size: 0.75rem; color: var(--text-secondary);">Institutional Registration</span>
+      </div>
+
+      <div class="auth-form-header" style="margin-bottom: 1.25rem;">
+        <h2 class="auth-form-title" id="pageHeading" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+          <% if (typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher')) { %>
+            Create Faculty Account
+          <% } else if (typeof currentRole !== 'undefined' && currentRole === 'admin') { %>
+            Create Administrator Account
+          <% } else { %>
+            Create Student Account
+          <% } %>
+        </h2>
+        <p class="auth-form-subtitle" id="pageSubheading" style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+          <% if (typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher')) { %>
+            Create your institutional faculty account.
+          <% } else if (typeof currentRole !== 'undefined' && currentRole === 'admin') { %>
+            Register an authorized CampusAI administrator account.
+          <% } else { %>
+            Join CampusAI and access your academic portal.
+          <% } %>
+        </p>
+      </div>
+
+      <!-- Error Alert -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger" style="margin-bottom: 1.25rem; font-size: 0.8125rem;">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <!-- Registration Form -->
+      <form action="/auth/register" method="POST" id="registerForm" enctype="multipart/form-data" novalidate onsubmit="return handleFormSubmit(event)">
+        <input type="hidden" name="role" id="roleInput" value="<%= typeof currentRole !== 'undefined' ? currentRole : 'student' %>" />
+
+        <!-- 1. PERSONAL INFORMATION -->
+        <div class="form-grid-2col">
+          <div class="form-group">
+            <label class="form-label" for="name">
+              Full Name <span style="color: var(--danger); font-weight: bold;">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-control" 
+              placeholder="e.g. Gurudhanush" 
+              value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>" 
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="phone">
+              Contact Phone <span style="color: var(--danger); font-weight: bold;">*</span>
+            </label>
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              class="form-control" 
+              placeholder="e.g. +91 98451 23456" 
+              value="<%= typeof formData !== 'undefined' && formData.phone ? formData.phone : '' %>" 
+              required 
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">
+            Institutional Email <span style="color: var(--danger); font-weight: bold;">*</span>
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="name@campusai.edu" 
+            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>" 
+            required 
+          />
+        </div>
+
+        <!-- 2. ROLE SPECIFIC FIELDS -->
+
+        <!-- STUDENT SPECIFIC FIELDS -->
+        <div id="studentFields" style="<%= (typeof currentRole === 'undefined' || currentRole === 'student') ? 'display: block;' : 'display: none;' %>">
+          <div class="form-grid-2col">
+            <div class="form-group">
+              <label class="form-label" for="registerNumber">
+                Register Number <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="registerNumber" 
+                name="registerNumber" 
+                class="form-control" 
+                placeholder="e.g. 23AID001" 
+                value="<%= typeof formData !== 'undefined' && formData.registerNumber ? formData.registerNumber : '' %>" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="studentDepartment">
+                Academic Department <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <select id="studentDepartment" name="studentDepartment" class="form-control">
+                <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+                <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group">
+              <label class="form-label" for="year">
+                Academic Year <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <select id="year" name="year" class="form-control">
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year" selected>2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="section">
+                Class Section <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <select id="section" name="section" class="form-control">
+                <option value="A" selected>Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
+                <option value="D">Section D</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="avatar">
+              Profile Photo <span style="color: var(--text-muted); font-size: 0.75rem;">(Optional)</span>
+            </label>
+            <input type="file" id="avatar" name="avatar" class="form-control" accept="image/*" />
+          </div>
+        </div>
+
+        <!-- FACULTY SPECIFIC FIELDS -->
+        <div id="facultyFields" style="<%= (typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher')) ? 'display: block;' : 'display: none;' %>">
+          <div class="form-grid-2col">
+            <div class="form-group">
+              <label class="form-label" for="employeeId">
+                Employee ID <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="employeeId" 
+                name="employeeId" 
+                class="form-control" 
+                placeholder="e.g. FAC1024" 
+                value="<%= typeof formData !== 'undefined' && formData.employeeId ? formData.employeeId : '' %>" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="facultyDesignation">
+                Designation <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <select id="facultyDesignation" name="facultyDesignation" class="form-control">
+                <option value="Professor">Professor</option>
+                <option value="Associate Professor" selected>Associate Professor</option>
+                <option value="Assistant Professor">Assistant Professor</option>
+                <option value="Lab Instructor">Lab Instructor</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="facultyDepartment">
+              Faculty Department <span style="color: var(--danger); font-weight: bold;">*</span>
+            </label>
+            <select id="facultyDepartment" name="facultyDepartment" class="form-control">
+              <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+              <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+              <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Basic Sciences & Humanities">Basic Sciences & Humanities</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ADMIN SPECIFIC FIELDS -->
+        <div id="adminFields" style="<%= (typeof currentRole !== 'undefined' && currentRole === 'admin') ? 'display: block;' : 'display: none;' %>">
+          <div class="admin-verification-box">
+            <div class="admin-verification-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Administrator accounts require institutional verification.
+            </div>
+            <p class="admin-verification-text">
+              To prevent unauthorized administrative privileges, enter the authorized registration code provided by campus IT governance.
+            </p>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group">
+              <label class="form-label" for="adminId">
+                Admin ID <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <input 
+                type="text" 
+                id="adminId" 
+                name="adminId" 
+                class="form-control" 
+                placeholder="e.g. ADM001" 
+                value="<%= typeof formData !== 'undefined' && formData.adminId ? formData.adminId : '' %>" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="adminDesignation">
+                Designation <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <select id="adminDesignation" name="adminDesignation" class="form-control">
+                <option value="Administrator" selected>Administrator</option>
+                <option value="HOD">HOD</option>
+                <option value="Principal">Principal</option>
+                <option value="Academic Coordinator">Academic Coordinator</option>
+                <option value="System Administrator">System Administrator</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group">
+              <label class="form-label" for="adminDepartment">
+                Department / Administration Unit <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <select id="adminDepartment" name="adminDepartment" class="form-control">
+                <option value="Academic Administration" selected>Academic Administration</option>
+                <option value="Examination Cell">Examination Cell</option>
+                <option value="Registrar Office">Registrar Office</option>
+                <option value="Campus Facilities & Logistics">Campus Facilities & Logistics</option>
+                <option value="Student Affairs & Welfare">Student Affairs & Welfare</option>
+                <option value="Finance & Accounts Section">Finance & Accounts Section</option>
+                <option value="Information Technology & Systems">Information Technology & Systems</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="adminCode">
+                Administrator Registration Code <span style="color: var(--danger); font-weight: bold;">*</span>
+              </label>
+              <div class="password-input-wrapper">
+                <input 
+                  type="password" 
+                  id="adminCode" 
+                  name="adminCode" 
+                  class="form-control" 
+                  placeholder="Enter authorized code" 
+                />
+                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('adminCode', this)" aria-label="Toggle code visibility">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. ACCOUNT SECURITY -->
+        <div class="form-grid-2col" style="margin-top: 0.5rem;">
+          <div class="form-group">
+            <label class="form-label" for="regPassword">
+              Password <span style="color: var(--danger); font-weight: bold;">*</span>
+            </label>
+            <div class="password-input-wrapper">
+              <input 
+                type="password" 
+                id="regPassword" 
+                name="password" 
+                class="form-control" 
+                placeholder="Minimum 8 characters" 
+                oninput="validatePasswordLive()" 
+                required 
+              />
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="regConfirmPassword">
+              Confirm Password <span style="color: var(--danger); font-weight: bold;">*</span>
+            </label>
+            <div class="password-input-wrapper">
+              <input 
+                type="password" 
+                id="regConfirmPassword" 
+                name="confirmPassword" 
+                class="form-control" 
+                placeholder="Confirm password" 
+                oninput="validatePasswordLive()" 
+                required 
+              />
+              <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regConfirmPassword', this)" aria-label="Toggle confirm password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password Validation Checklist -->
+        <div class="password-checklist">
+          <div class="password-checklist-title">Password Security Requirements:</div>
+          <div class="password-checklist-grid">
+            <div class="password-req-item" id="reqLength">
+              <span class="password-req-icon">•</span> At least 8 characters
+            </div>
+            <div class="password-req-item" id="reqUpper">
+              <span class="password-req-icon">•</span> At least one uppercase letter (A-Z)
+            </div>
+            <div class="password-req-item" id="reqLower">
+              <span class="password-req-icon">•</span> At least one lowercase letter (a-z)
+            </div>
+            <div class="password-req-item" id="reqNum">
+              <span class="password-req-icon">•</span> At least one numeric digit (0-9)
+            </div>
+            <div class="password-req-item" id="reqMatch" style="grid-column: 1 / -1;">
+              <span class="password-req-icon">•</span> Passwords match
+            </div>
+          </div>
+        </div>
+
+        <!-- Client-side Error Banner -->
+        <div id="clientErrorAlert" class="alert alert-danger" style="display: none; margin-top: 1rem; font-size: 0.8125rem;"></div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitRegBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; font-weight: 600; margin-top: 1.25rem; justify-content: center;">
+          <% if (typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher')) { %>
+            Create Faculty Account
+          <% } else if (typeof currentRole !== 'undefined' && currentRole === 'admin') { %>
+            Create Administrator Account
+          <% } else { %>
+            Create Student Account
+          <% } %>
+        </button>
+      </form>
+
+      <!-- Bottom Login Link -->
+      <div class="auth-switch-link" style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+        Already have an account? 
+        <a href="/auth/login?role=<%= typeof currentRole !== 'undefined' && (currentRole === 'faculty' || currentRole === 'teacher') ? 'faculty' : (typeof currentRole !== 'undefined' && currentRole === 'admin' ? 'admin' : 'student') %>" id="returnSignInLink" style="font-weight: 600; margin-left: 0.25rem;">
+          Sign In
+        </a>
+      </div>
+
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+  function selectRole(role) {
+    if (!role) role = 'student';
+    role = role.toLowerCase();
+    if (role === 'teacher') role = 'faculty';
+
+    const roleInput = document.getElementById('roleInput');
+    if (roleInput) roleInput.value = role;
+
+    // Update active tab buttons
+    const tabs = ['student', 'faculty', 'admin'];
+    tabs.forEach(t => {
+      const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn) {
+        if (t === role) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    });
+
+    // Update role fields visibility
+    const studentFields = document.getElementById('studentFields');
+    const facultyFields = document.getElementById('facultyFields');
+    const adminFields = document.getElementById('adminFields');
+
+    if (studentFields) studentFields.style.display = role === 'student' ? 'block' : 'none';
+    if (facultyFields) facultyFields.style.display = role === 'faculty' ? 'block' : 'none';
+    if (adminFields) adminFields.style.display = role === 'admin' ? 'block' : 'none';
+
+    // Update headers and badge
+    const roleBadgeText = document.getElementById('roleBadgeText');
+    const pageHeading = document.getElementById('pageHeading');
+    const pageSubheading = document.getElementById('pageSubheading');
+    const submitBtn = document.getElementById('submitRegBtn');
+    const returnSignInLink = document.getElementById('returnSignInLink');
+
+    if (role === 'student') {
+      if (roleBadgeText) roleBadgeText.textContent = 'ROLE • Student';
+      if (pageHeading) pageHeading.textContent = 'Create Student Account';
+      if (pageSubheading) pageSubheading.textContent = 'Join CampusAI and access your academic portal.';
+      if (submitBtn) submitBtn.textContent = 'Create Student Account';
+      if (returnSignInLink) returnSignInLink.href = '/auth/login?role=student';
+    } else if (role === 'faculty') {
+      if (roleBadgeText) roleBadgeText.textContent = 'ROLE • Faculty';
+      if (pageHeading) pageHeading.textContent = 'Create Faculty Account';
+      if (pageSubheading) pageSubheading.textContent = 'Create your institutional faculty account.';
+      if (submitBtn) submitBtn.textContent = 'Create Faculty Account';
+      if (returnSignInLink) returnSignInLink.href = '/auth/login?role=faculty';
+    } else if (role === 'admin') {
+      if (roleBadgeText) roleBadgeText.textContent = 'ROLE • Administrator';
+      if (pageHeading) pageHeading.textContent = 'Create Administrator Account';
+      if (pageSubheading) pageSubheading.textContent = 'Register an authorized CampusAI administrator account.';
+      if (submitBtn) submitBtn.textContent = 'Create Administrator Account';
+      if (returnSignInLink) returnSignInLink.href = '/auth/login?role=admin';
+    }
+
+    // Update browser URL query param without full page reload
+    if (window.history && window.history.replaceState) {
+      const url = new URL(window.location);
+      url.searchParams.set('role', role);
+      window.history.replaceState({}, '', url);
+    }
+  }
+
+  function togglePasswordVisibility(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+    } else {
+      input.type = 'password';
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+  }
+
+  function validatePasswordLive() {
+    const p1 = document.getElementById('regPassword') ? document.getElementById('regPassword').value : '';
+    const p2 = document.getElementById('regConfirmPassword') ? document.getElementById('regConfirmPassword').value : '';
+
+    const isLen = p1.length >= 8;
+    const isUpper = /[A-Z]/.test(p1);
+    const isLower = /[a-z]/.test(p1);
+    const isNum = /[0-9]/.test(p1);
+    const isMatch = p1.length > 0 && p1 === p2;
+
+    updateReq('reqLength', isLen);
+    updateReq('reqUpper', isUpper);
+    updateReq('reqLower', isLower);
+    updateReq('reqNum', isNum);
+    updateReq('reqMatch', isMatch);
+  }
+
+  function updateReq(id, valid) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (valid) {
+      el.classList.add('valid');
+      el.innerHTML = '<span class="password-req-icon">✓</span> ' + el.textContent.replace(/^[•✓]\s*/, '');
+    } else {
+      el.classList.remove('valid');
+      el.innerHTML = '<span class="password-req-icon">•</span> ' + el.textContent.replace(/^[•✓]\s*/, '');
+    }
+  }
+
+  function handleFormSubmit(e) {
+    const clientErr = document.getElementById('clientErrorAlert');
+    if (clientErr) clientErr.style.display = 'none';
+
+    const role = document.getElementById('roleInput').value || 'student';
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+    function showError(msg) {
+      if (clientErr) {
+        clientErr.textContent = msg;
+        clientErr.style.display = 'block';
+        clientErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        alert(msg);
+      }
+      return false;
+    }
+
+    if (!name) return showError('Full Name is required.');
+    if (!phone) return showError('Contact Phone Number is required.');
+    if (!email) return showError('Institutional Email is required.');
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return showError('Please enter a valid email address.');
+
+    if (role === 'student') {
+      const regNo = document.getElementById('registerNumber').value.trim();
+      if (!regNo) return showError('Register Number is required for student registration.');
+    } else if (role === 'faculty') {
+      const empId = document.getElementById('employeeId').value.trim();
+      if (!empId) return showError('Employee ID is required for faculty registration.');
+    } else if (role === 'admin') {
+      const admId = document.getElementById('adminId').value.trim();
+      const code = document.getElementById('adminCode').value.trim();
+      if (!admId) return showError('Administrator ID is required.');
+      if (!code) return showError('Administrator Registration Code is required for institutional verification.');
+    }
+
+    if (password.length < 8) return showError('Password must be at least 8 characters long.');
+    if (!/[A-Z]/.test(password)) return showError('Password must contain at least one uppercase letter (A-Z).');
+    if (!/[a-z]/.test(password)) return showError('Password must contain at least one lowercase letter (a-z).');
+    if (!/[0-9]/.test(password)) return showError('Password must contain at least one numeric digit (0-9).');
+    if (password !== confirmPassword) return showError('Passwords do not match. Please verify your password confirmation.');
+
+    return true;
+  }
+
+  // Initialize with URL query param if present
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramRole = urlParams.get('role') || urlParams.get('tab') || '<%= typeof currentRole !== "undefined" ? currentRole : "student" %>';
+    if (paramRole) {
+      selectRole(paramRole);
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

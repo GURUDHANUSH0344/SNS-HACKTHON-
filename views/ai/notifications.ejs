@@ -1,0 +1,128 @@
+<%- include('../partials/head', { pageTitle: 'Smart Notifications — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Smart Notifications & Automated Alerts</h1>
+          <p class="page-subtitle">Algorithmic Academic Reminders, Attendance Shortage Alerts & Institutional Broadcasts</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Activity Feed (<%= notifications.length %> Items)</h3>
+          <span class="badge badge-primary">Auto-Synchronized</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div style="display: flex; flex-direction: column;">
+            <% if (notifications && notifications.length > 0) { %>
+              <% notifications.forEach(notif => { %>
+                <div 
+                  id="notif-row-<%= notif.id %>"
+                  style="display: flex; justify-content: space-between; align-items: flex-start; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); background: <%= notif.isRead ? '#ffffff' : '#f8fafc' %>; transition: background 0.2s;"
+                >
+                  <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <!-- Priority Icon -->
+                    <div style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; background: <%= notif.priority === 'Urgent' || notif.priority === 'High' ? '#fee2e2' : notif.priority === 'Medium' ? '#fef3c7' : '#e0f2fe' %>;">
+                      <% if (notif.category === 'Attendance') { %>
+                        📉
+                      <% } else if (notif.category === 'Fee') { %>
+                        💳
+                      <% } else if (notif.category === 'Exam' || notif.category === 'Academic') { %>
+                        📝
+                      <% } else if (notif.category === 'Assignment') { %>
+                        📚
+                      <% } else { %>
+                        🔔
+                      <% } %>
+                    </div>
+
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+                        <h4 style="font-size: 0.95rem; font-weight: <%= notif.isRead ? '600' : '800' %>; color: var(--text-main); margin: 0;">
+                          <%= notif.title %>
+                        </h4>
+                        <span class="badge badge-<%= notif.priority === 'Urgent' || notif.priority === 'High' ? 'danger' : notif.priority === 'Medium' ? 'warning' : 'info' %>" style="font-size: 0.68rem;">
+                          <%= notif.priority %>
+                        </span>
+                        <span class="badge badge-secondary" style="font-size: 0.68rem;">
+                          <%= notif.category %>
+                        </span>
+                        <% if (!notif.isRead) { %>
+                          <span class="badge badge-primary" style="font-size: 0.65rem;">New</span>
+                        <% } %>
+                      </div>
+
+                      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 0.5rem;">
+                        <%= notif.message %>
+                      </p>
+
+                      <div style="display: flex; gap: 1rem; align-items: center; font-size: 0.75rem; color: var(--text-muted);">
+                        <span>🕒 <%= new Date(notif.createdAt).toLocaleString() %></span>
+                        <% if (notif.actionUrl) { %>
+                          <a href="<%= notif.actionUrl %>" style="color: var(--primary); font-weight: 600; text-decoration: underline;">
+                            View Relevant Module →
+                          </a>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <% if (!notif.isRead) { %>
+                      <button 
+                        class="btn btn-secondary btn-sm" 
+                        style="font-size: 0.75rem;"
+                        onclick="markAsRead(<%= notif.id %>)"
+                      >
+                        Mark as Read
+                      </button>
+                    <% } else { %>
+                      <span style="font-size: 0.75rem; color: var(--text-muted);">Read</span>
+                    <% } %>
+                  </div>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔕</div>
+                <p>No new notifications. You are completely caught up!</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  async function markAsRead(id) {
+    try {
+      const res = await fetch(`/ai/notifications/${id}/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const row = document.getElementById(`notif-row-${id}`);
+        if (row) {
+          row.style.background = '#ffffff';
+          const btn = row.querySelector('button');
+          if (btn) btn.outerHTML = '<span style="font-size: 0.75rem; color: var(--text-muted);">Read</span>';
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

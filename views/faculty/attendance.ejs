@@ -1,0 +1,123 @@
+<%- include('../partials/head', { pageTitle: 'Faculty Attendance Management — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Attendance Management & Regulatory 75% Tracker</h1>
+          <p class="page-subtitle">Mark Daily Attendance Roster and Monitor Student Shortage Alerts</p>
+        </div>
+        <div class="header-actions">
+          <a href="/faculty/timetable" class="btn btn-secondary btn-sm">
+            <span>📅 View Class Timetable</span>
+          </a>
+          <a href="/ai/attendance-intelligence" class="btn btn-ai btn-sm">
+            <span>🎯 75% AI Simulator</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <form action="/faculty/attendance" method="POST">
+          <div style="display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 1.25rem; flex-wrap: wrap; flex: 1;">
+              <div style="min-width: 260px;">
+                <label class="form-label" style="font-weight: 700;">Instructional Subject</label>
+                <select name="subjectName" class="form-control" required>
+                  <% subjects.forEach(sub => { %>
+                    <option value="<%= sub.name %>"><%= sub.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div style="min-width: 200px;">
+                <label class="form-label" style="font-weight: 700;">Lecture Session Date</label>
+                <input type="date" name="date" class="form-control" value="<%= new Date().toISOString().slice(0, 10) %>" required />
+              </div>
+            </div>
+
+            <div>
+              <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.75rem;">
+                💾 Save Daily Attendance Roster
+              </button>
+            </div>
+          </div>
+
+          <!-- Roster Table (Section 17) -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Student Name</th>
+                  <th>Course & Cohort</th>
+                  <th>Tracked Rate</th>
+                  <th>Eligibility Status</th>
+                  <th style="min-width: 230px;">Today's Attendance Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% studentStats.forEach(st => { %>
+                  <tr>
+                    <td>
+                      <strong class="font-mono" style="color: var(--primary); font-size: 0.8125rem;">
+                        <%= st.studentId %>
+                      </strong>
+                    </td>
+                    <td>
+                      <div style="font-weight: 700; color: var(--text-main);"><%= st.name %></div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);"><%= st.email %></div>
+                    </td>
+                    <td><%= st.course %> (Yr <%= st.year %>)</td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-weight: 800;" class="<%= st.isShortage ? 'text-danger' : 'text-success' %>">
+                          <%= st.attendancePercentage %>%
+                        </span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted);">
+                          (<%= st.attendedClasses %>/<%= st.totalClasses %>)
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <% if (st.isShortage) { %>
+                        <span class="status-pill status-overdue">⚠️ Shortage (&lt;75%)</span>
+                      <% } else { %>
+                        <span class="status-pill status-paid">✓ Eligible (≥75%)</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <div class="radio-pill-group">
+                        <label class="radio-pill-item is-present" title="Mark Present">
+                          <input type="radio" name="attendance[<%= st.id %>]" value="Present" checked />
+                          <span>Present</span>
+                        </label>
+                        <label class="radio-pill-item is-absent" title="Mark Absent">
+                          <input type="radio" name="attendance[<%= st.id %>]" value="Absent" />
+                          <span>Absent</span>
+                        </label>
+                        <label class="radio-pill-item is-late" title="Mark Late">
+                          <input type="radio" name="attendance[<%= st.id %>]" value="Late" />
+                          <span>Late</span>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+        </form>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

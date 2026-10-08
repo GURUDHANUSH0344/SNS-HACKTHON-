@@ -1,0 +1,126 @@
+<%- include('../partials/head', { pageTitle: 'AI Teaching Assistant — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">AI Teaching Assistant & Pedagogical Mentor</h1>
+          <p class="page-subtitle">Interactive AI Companion for Curriculum Design, Lesson Planning, and Student Interventions</p>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <h3><span>👩‍🏫</span> Faculty Teaching Assistant</h3>
+            <p>Grounding assistance in university curriculum guidelines, Bloom's Taxonomy, and active learning mechanics</p>
+          </div>
+          <span class="status-pill status-paid" style="background: rgba(255,255,255,0.2); color: #fff;">Online</span>
+        </div>
+
+        <div class="chat-messages-area" id="facultyChatMessages">
+          <div class="chat-msg bot">
+            <div class="msg-avatar">AI</div>
+            <div class="msg-bubble">
+              Welcome, Professor! I am your <strong>AI Teaching Assistant</strong>. I can assist you with:
+              <br/><br/>
+              • <strong>Lesson Plans:</strong> Structured 50-minute lecture breakdowns with active learning checkpoints.<br/>
+              • <strong>Remedial Strategies:</strong> Targeted pedagogical interventions for students with attendance or score lag.<br/>
+              • <strong>Question Paper Design:</strong> Formulating questions according to Bloom's Taxonomy levels.<br/>
+              • <strong>Lab Assignments:</strong> Practical coding problem sets with edge cases and automated rubrics.
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-quick-suggestions">
+          <span class="suggestion-pill" onclick="sendFacultyPrompt('Design a 50-min active learning lesson plan for B-Trees and Indexing in DBMS')">
+            50-min B-Tree Lesson Plan
+          </span>
+          <span class="suggestion-pill" onclick="sendFacultyPrompt('Suggest pedagogical intervention for 3 students failing internal mid-term exam')">
+            Intervention for At-Risk Students
+          </span>
+          <span class="suggestion-pill" onclick="sendFacultyPrompt('Generate Bloom taxonomy Level 3 and 4 questions for Operating Systems Paging')">
+            Bloom's Taxonomy Questions
+          </span>
+          <span class="suggestion-pill" onclick="sendFacultyPrompt('Create a hands-on Dijkstra Algorithm coding assignment with grading rubric')">
+            Dijkstra Lab Assignment Rubric
+          </span>
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text" id="facultyChatInput" placeholder="Ask for lesson planning, teaching interventions, or curriculum design..." />
+          <button type="button" id="facultyChatSend" onclick="handleFacultyChat()" class="btn btn-primary">
+            Send Inquiry
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  function sendFacultyPrompt(text) {
+    document.getElementById('facultyChatInput').value = text;
+    handleFacultyChat();
+  }
+
+  async function handleFacultyChat() {
+    const input = document.getElementById('facultyChatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const area = document.getElementById('facultyChatMessages');
+
+    // Append user message
+    const userDiv = document.createElement('div');
+    userDiv.className = 'chat-msg user';
+    userDiv.innerHTML = `<div class="msg-avatar">You</div><div class="msg-bubble">${msg}</div>`;
+    area.appendChild(userDiv);
+    input.value = '';
+    area.scrollTop = area.scrollHeight;
+
+    // Loading indicator
+    const typing = document.createElement('div');
+    typing.className = 'chat-msg bot';
+    typing.id = 'facultyTyping';
+    typing.innerHTML = `<div class="msg-avatar">AI</div><div class="msg-bubble"><em>Generating pedagogical analysis...</em></div>`;
+    area.appendChild(typing);
+    area.scrollTop = area.scrollHeight;
+
+    try {
+      const res = await fetch('/faculty/ai-assistant/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: msg })
+      });
+      const data = await res.json();
+      typing.remove();
+
+      const botDiv = document.createElement('div');
+      botDiv.className = 'chat-msg bot';
+      const formatted = (data.reply || 'Analysis completed.')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br/>');
+
+      botDiv.innerHTML = `<div class="msg-avatar">AI</div><div class="msg-bubble">${formatted}</div>`;
+      area.appendChild(botDiv);
+      area.scrollTop = area.scrollHeight;
+    } catch (e) {
+      typing.remove();
+      showToast('Network error during AI assistant chat', 'error');
+    }
+  }
+
+  document.getElementById('facultyChatInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleFacultyChat();
+  });
+</script>
+
+<%- include('../partials/footer') %>

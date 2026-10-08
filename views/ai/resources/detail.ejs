@@ -1,0 +1,209 @@
+<%- include('../../partials/head', { pageTitle: `${resource.name} — Resource Profile & Optimization` }) %>
+
+<div class="app-layout">
+  <%- include('../../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../../partials/navbar') %>
+
+    <main class="content-container">
+      <!-- Breadcrumb & Back Action -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748B;">
+          <a href="/ai/resources" style="color: #0F2747; font-weight: 700; text-decoration: none;">← Resource Optimization Hub</a>
+          <span>/</span>
+          <span><%= resource.category %></span>
+          <span>/</span>
+          <span style="color: #0F2747; font-weight: 600;"><%= resource.name %></span>
+        </div>
+        <div>
+          <a href="/ai/resources" class="btn btn-secondary btn-sm">
+            <span>Back to Inventory</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Profile Header Card -->
+      <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.4rem;">
+              <span class="badge" style="background: #0F2747; color: #FFF; font-family: monospace; font-size: 0.75rem;"><%= resource.code %></span>
+              <span class="badge" style="background: #F1F5F9; color: #475569; font-weight: 600; font-size: 0.72rem;"><%= resource.category %></span>
+              <% 
+                let statusBadgeStyle = 'background: #DCFCE7; color: #15803D;';
+                if (resource.utilizationStatus === 'OVERLOADED') statusBadgeStyle = 'background: #FEE2E2; color: #B91C1C;';
+                else if (resource.utilizationStatus === 'UNDERUTILIZED') statusBadgeStyle = 'background: #FEF3C7; color: #B45309;';
+                else if (resource.utilizationStatus === 'HIGH UTILIZATION') statusBadgeStyle = 'background: #EFF6FF; color: #1D4ED8;';
+              %>
+              <span class="badge" style="<%= statusBadgeStyle %> font-weight: 800; font-size: 0.72rem;">
+                <%= resource.utilizationStatus %>
+              </span>
+            </div>
+            <h1 style="font-size: 1.65rem; font-weight: 800; color: #0F2747; margin: 0 0 0.35rem 0;"><%= resource.name %></h1>
+            <p style="font-size: 0.85rem; color: #475569; margin: 0;">
+              <%= resource.type %> • <%= resource.building %> • Floor <%= resource.floor %> • Department: <strong><%= resource.department %></strong>
+            </p>
+          </div>
+
+          <div style="text-align: right;">
+            <span style="font-size: 0.75rem; color: #64748B; display: block;">Resource Health State</span>
+            <div style="display: flex; align-items: baseline; gap: 0.4rem; justify-content: flex-end;">
+              <span style="font-size: 1.6rem; font-weight: 800; color: <%= resource.healthScore >= 90 ? '#15803D' : '#D97706' %>;">
+                <%= resource.healthScore %>%
+              </span>
+              <span class="badge" style="background: #DCFCE7; color: #15803D; font-weight: 700; font-size: 0.68rem;">GOOD</span>
+            </div>
+            <span style="font-size: 0.72rem; color: #64748B;">Operating: <%= resource.operatingHours %></span>
+          </div>
+        </div>
+
+        <!-- Metric Strips -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #E2E8F0;">
+          <div>
+            <span style="font-size: 0.75rem; color: #64748B; font-weight: 600;">Time Utilization</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #0F2747; margin-top: 0.2rem;"><%= resource.timeUtilization %>%</div>
+            <div style="font-size: 0.7rem; color: #64748B;"><%= resource.weeklyUsedHours %> hrs used / <%= resource.weeklyAvailableHours %> hrs week</div>
+          </div>
+
+          <div>
+            <span style="font-size: 0.75rem; color: #64748B; font-weight: 600;">Capacity Utilization</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #0F2747; margin-top: 0.2rem;"><%= resource.capacityUtilization %>%</div>
+            <div style="font-size: 0.7rem; color: #64748B;">Avg <%= resource.averageOccupancy %> / <%= resource.capacity %> Seats</div>
+          </div>
+
+          <div>
+            <span style="font-size: 0.75rem; color: #64748B; font-weight: 600;">Unused Weekly Capacity</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: <%= resource.weeklyUnusedHours > 20 ? '#B45309' : '#15803D' %>; margin-top: 0.2rem;"><%= resource.weeklyUnusedHours %> hrs</div>
+            <div style="font-size: 0.7rem; color: #64748B;">Idle Recovery Window</div>
+          </div>
+
+          <div>
+            <span style="font-size: 0.75rem; color: #64748B; font-weight: 600;">Maintenance Status</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #15803D; margin-top: 0.2rem;"><%= resource.maintenanceStatus %></div>
+            <div style="font-size: 0.7rem; color: #64748B;">Operational Clearance</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Column Details Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- Left: AI Intelligence & Usage Windows -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- AI Recommendation Box -->
+          <div class="card" style="background: #FFFFFF; border: 2px solid #BFDBFE; border-radius: 10px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span class="badge" style="background: #0F2747; color: #FFF; font-weight: 700; font-size: 0.7rem;">CAMPUSAI SMART INSIGHT</span>
+              <span class="badge" style="background: #DCFCE7; color: #15803D; font-weight: 700; font-size: 0.7rem;">94% CONFIDENCE</span>
+            </div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0F2747; margin: 0 0 0.5rem 0;">
+              <%= resource.timeUtilization <= 35 ? 'Underutilization Recovery Opportunity' : 'Capacity Load Balancing' %>
+            </h3>
+            <p style="font-size: 0.84rem; color: #334155; line-height: 1.5; margin: 0 0 0.85rem 0;">
+              <%= resource.code === 'LAB-B3-02' 
+                ? 'Computer Lab 3 is consistently underutilized between 2:00 PM and 4:00 PM (only 31% time utilization). Consider assigning practical sessions, project work, or reallocating overcrowded practicals from Lab 1 to recover 8+ hours of weekly capacity.'
+                : (resource.notes || 'CampusAI continuously tracks IoT sensor logs and schedule compliance to ensure optimal facility distribution.') %>
+            </p>
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.8rem; margin-bottom: 0.85rem;">
+              <span>Potential Recovered Weekly Usage:</span>
+              <strong style="color: #15803D; font-size: 0.95rem;">+8.0 Hours / Week</strong>
+            </div>
+            <a href="/ai/resources" class="btn btn-primary btn-sm" style="width: 100%; text-align: center; background: #0F2747; border-color: #0F2747;">
+              Open What-If Allocation Simulator →
+            </a>
+          </div>
+
+          <!-- Peak and Low Windows -->
+          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2747; margin: 0 0 0.85rem 0;">Temporal Usage Profile</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+              <div style="background: #FEE2E2; padding: 0.75rem; border-radius: 8px; border: 1px solid #FECACA;">
+                <span style="font-size: 0.72rem; color: #B91C1C; font-weight: 700; text-transform: uppercase;">Peak Usage Window</span>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #991B1B; margin-top: 0.2rem;"><%= resource.peakUsageWindow %></div>
+                <span style="font-size: 0.7rem; color: #7F1D1D;">High Student Traffic</span>
+              </div>
+              <div style="background: #DCFCE7; padding: 0.75rem; border-radius: 8px; border: 1px solid #BBF7D0;">
+                <span style="font-size: 0.72rem; color: #15803D; font-weight: 700; text-transform: uppercase;">Idle Unused Window</span>
+                <div style="font-size: 1.05rem; font-weight: 800; color: #166534; margin-top: 0.2rem;"><%= resource.lowUsageWindow %></div>
+                <span style="font-size: 0.7rem; color: #14532D;">Prime for New Allocation</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equipment & Hardware Specifications -->
+          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2747; margin: 0 0 0.75rem 0;">Verified Hardware & Equipment Stack</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              <% equipmentList.forEach(eq => { %>
+                <span class="badge" style="background: #F1F5F9; color: #1E293B; border: 1px solid #CBD5E1; font-weight: 600; font-size: 0.75rem; padding: 0.35rem 0.65rem;">
+                  ✓ <%= eq %>
+                </span>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Bookings & Maintenance -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- Upcoming Scheduled Bookings -->
+          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2747; margin: 0;">Scheduled Bookings & Classes</h4>
+              <span class="badge badge-primary" style="font-size: 0.7rem;"><%= resource.bookings ? resource.bookings.length : 0 %> Active</span>
+            </div>
+
+            <% if (resource.bookings && resource.bookings.length > 0) { %>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <% resource.bookings.forEach(b => { %>
+                  <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 0.75rem 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <strong style="font-size: 0.84rem; color: #0F2747; display: block;"><%= b.purpose %></strong>
+                      <span style="font-size: 0.72rem; color: #64748B;"><%= b.dayOfWeek %> • <%= b.startTime %>–<%= b.endTime %> • Faculty: <%= b.bookedBy %></span>
+                    </div>
+                    <span class="badge" style="background: #EFF6FF; color: #1D4ED8; font-weight: 700; font-size: 0.68rem;">
+                      <%= b.expectedOccupancy %> Students
+                    </span>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div style="text-align: center; padding: 2rem; color: #64748B; font-size: 0.8125rem;">
+                No fixed scheduled bookings found for this slot. Open for allocation.
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Maintenance Log -->
+          <div class="card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <h4 style="font-size: 0.95rem; font-weight: 800; color: #0F2747; margin: 0;">Maintenance & Diagnostic History</h4>
+              <span class="badge" style="background: #DCFCE7; color: #15803D; font-weight: 700; font-size: 0.68rem;">CALIBRATED</span>
+            </div>
+
+            <% if (resource.maintenanceRecords && resource.maintenanceRecords.length > 0) { %>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <% resource.maintenanceRecords.forEach(m => { %>
+                  <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 0.75rem 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <strong style="font-size: 0.8125rem; color: #0F2747;"><%= m.maintenanceType %></strong>
+                      <span class="badge" style="background: #DCFCE7; color: #15803D; font-size: 0.65rem;"><%= m.status %></span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #475569; margin: 0 0 0.25rem 0;"><%= m.description %></p>
+                    <span style="font-size: 0.7rem; color: #64748B;"><%= m.startDate %> (<%= m.startTime %>–<%= m.endTime %>) • Tech: <%= m.technician %></span>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div style="text-align: center; padding: 1.5rem; color: #64748B; font-size: 0.8125rem;">
+                Zero scheduled downtime. Hardware operational integrity 100%.
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../../partials/footer') %>

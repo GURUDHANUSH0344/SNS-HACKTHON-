@@ -1,0 +1,174 @@
+<%- include('../partials/head', { pageTitle: 'Career & Skill Navigator — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Career & Skill Navigator</h1>
+          <p class="page-subtitle">AI-Driven Industry Alignment, Role Recommendations & Capstone Pathways</p>
+        </div>
+      </div>
+
+      <!-- Hero Guidance Card -->
+      <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary); padding: 1.5rem 1.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+          <div>
+            <span class="status-pill status-ai-insight" style="margin-bottom: 0.35rem;">
+              Career & Competency Profiler
+            </span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; margin-top: 0.25rem; color: var(--text-main);">
+              Personalized Career Roadmap for <%= student ? student.name : 'Candidate' %>
+            </h2>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem; max-width: 650px;">
+              Synthesizing internal assessment marks, quiz competencies, and technical specialization metrics.
+            </p>
+          </div>
+          <div style="background: var(--soft-surface); border: 1px solid var(--border); padding: 1rem 1.5rem; border-radius: var(--radius-sm); text-align: center;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Top Role Compatibility</div>
+            <div style="font-size: 2.2rem; font-weight: 900; color: var(--primary);"><%= recommendations && recommendations.topMatch ? recommendations.topMatch.matchScore : '94%' %></div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);"><%= recommendations && recommendations.topMatch ? recommendations.topMatch.role : 'Full-Stack Software Engineer' %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Roles Section -->
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-main);">
+        Matched Industry Roles & Career Trajectories
+      </h3>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <% if (recommendations && recommendations.recommendedRoles && recommendations.recommendedRoles.length > 0) { %>
+          <% recommendations.recommendedRoles.forEach((role, idx) => { %>
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div class="card-header" style="align-items: flex-start;">
+                <div>
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">TRACK <%= idx + 1 %></span>
+                  <h3 class="card-title" style="margin-top: 0.2rem;"><%= role.title %></h3>
+                </div>
+                <span class="badge badge-success" style="font-size: 0.85rem; font-weight: 700;">
+                  <%= role.matchScore %>% Match
+                </span>
+              </div>
+              <div class="card-body" style="flex: 1;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
+                  <%= role.description %>
+                </p>
+
+                <div style="margin-bottom: 1rem;">
+                  <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Key High-Demand Skills</strong>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+                    <% (role.keySkills || []).forEach(skill => { %>
+                      <span class="badge badge-primary" style="font-size: 0.75rem;"><%= skill %></span>
+                    <% }) %>
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                  <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Recommended Industry Certifications</strong>
+                  <ul style="padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
+                    <% (role.recommendedCertifications || []).forEach(cert => { %>
+                      <li><%= cert %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+
+                <div>
+                  <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Suggested Portfolio Projects</strong>
+                  <ul style="padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
+                    <% (role.suggestedProjects || []).forEach(proj => { %>
+                      <li><%= proj %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+              </div>
+              <div class="card-footer" style="background: #f8fafc; border-top: 1px solid var(--border-color); padding: 0.75rem 1.25rem;">
+                <a href="/ai/learning-path" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center;">
+                  Build 7-Day Bridge Plan for this Role →
+                </a>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <!-- Fallback Rich Career Cards -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">TRACK 1</span>
+                <h3 class="card-title">Full-Stack Cloud & AI Engineer</h3>
+              </div>
+              <span class="badge badge-success">94% Match</span>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Architect scalable end-to-end web architectures integrating large language model endpoints, microservices, and reactive frontends.
+              </p>
+              <div style="margin-bottom: 1rem;">
+                <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Key Skills</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+                  <span class="badge badge-primary">Node.js / Express</span>
+                  <span class="badge badge-primary">Sequelize ORM</span>
+                  <span class="badge badge-primary">Gemini API</span>
+                  <span class="badge badge-primary">Docker</span>
+                </div>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Certifications</strong>
+                <ul style="padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
+                  <li>Google Cloud Associate Cloud Engineer</li>
+                  <li>AWS Certified Solutions Architect</li>
+                </ul>
+              </div>
+              <div>
+                <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Portfolio Project</strong>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">Smart Campus ERP with explainable AI prediction engine and automated ticketing.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">TRACK 2</span>
+                <h3 class="card-title">Machine Learning Systems Engineer</h3>
+              </div>
+              <span class="badge badge-success">89% Match</span>
+            </div>
+            <div class="card-body">
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Productionize predictive models, build feature engineering pipelines, and design low-latency inference services.
+              </p>
+              <div style="margin-bottom: 1rem;">
+                <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Key Skills</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">
+                  <span class="badge badge-primary">Python</span>
+                  <span class="badge badge-primary">FastAPI</span>
+                  <span class="badge badge-primary">Scikit-Learn</span>
+                  <span class="badge badge-primary">MLOps</span>
+                </div>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Certifications</strong>
+                <ul style="padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
+                  <li>TensorFlow Developer Certificate</li>
+                  <li>DeepLearning.AI MLOps Specialization</li>
+                </ul>
+              </div>
+              <div>
+                <strong style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Portfolio Project</strong>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">Early Warning Student Dropout Detection using ensemble classifier.</p>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

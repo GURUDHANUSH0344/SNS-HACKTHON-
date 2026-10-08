@@ -1,0 +1,25 @@
+  <!-- Global Command Palette Search Modal -->
+  <%- include('search_modal') %>
+
+  <!-- Global Settings & Preferences Modal -->
+  <%- include('settings_modal') %>
+
+  <!-- Global Floating AI Chat Widget (Only rendered after user login) -->
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <%- include('ai_chat_widget') %>
+  <% } %>
+
+  <!-- Global Toast Notification Container -->
+  <%- include('toast') %>
+
+  <!-- Core JavaScript Bundles -->
+  <script src="/js/main.js"></script>
+  <script src="/js/fees_ui.js"></script>
+  <script src="/js/hostel_ui.js"></script>
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <script src="/js/ai_chat.js"></script>
+  <% } %>
+  <script src="/js/ai_quiz.js"></script>
+  <script src="/js/problems_ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!-- Floating Global AI Chatbot Widget (Only active and displayed after user login) -->
+<% if (typeof currentUser !== 'undefined' && currentUser) { %>
+<div class="ai-fab-container" id="aiFabContainer">
+  <button class="ai-chat-fab" id="aiChatFab" title="CampusAI Assistant (Ctrl+/)" aria-label="Open Campus AI Assistant">
+    <span class="ai-fab-text">AI</span>
+    <span class="ai-fab-badge" title="Intelligent System Online">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0F2747" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+      </svg>
+    </span>
+  </button>
+  <span class="ai-fab-tooltip">CampusAI Assistant</span>
+</div>
+
+<div class="ai-chat-drawer" id="aiChatDrawer" aria-hidden="true">
+  <div class="ai-chat-header">
+    <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <div class="ai-header-avatar">
+        🤖
+      </div>
+      <div>
+        <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.4rem;">
+          CampusAI Assistant
+          <span class="ai-online-dot" title="Operational"></span>
+        </h4>
+        <span style="font-size: 0.72rem; opacity: 0.85; color: #E2E8F0;">
+          <%= currentUser.name ? currentUser.name.split(' ')[0] : 'Campus' %>'s Digital Guide
+        </span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.35rem;">
+      <button class="ai-chat-header-btn" id="aiChatClear" title="Clear Chat History">Clear</button>
+      <button class="ai-chat-close" id="aiChatClose" aria-label="Close Chat">✕</button>
+    </div>
+  </div>
+
+  <div class="ai-chat-body" id="aiChatBody">
+    <div class="chat-bubble bot">
+      Hello <%= currentUser.name ? currentUser.name.split(' ')[0] : '' %>! 👋 I am your <strong>CampusAI Assistant</strong>.
+      <br/><br/>
+      I have real-time visibility across your academic calendar, attendance threshold, grades, pending fees, and hostel amenities.
+    </div>
+  </div>
+
+  <div class="chat-quick-suggestions">
+    <span class="suggestion-pill">Check my 75% attendance</span>
+    <span class="suggestion-pill">Pending fee details</span>
+    <span class="suggestion-pill">Exam dates & schedule</span>
+    <span class="suggestion-pill">Report campus issue</span>
+  </div>
+
+  <div class="ai-chat-footer">
+    <input type="text" id="aiChatInput" placeholder="Ask anything about your campus..." autocomplete="off" />
+    <button class="ai-chat-send" id="aiChatSend" title="Send query">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>
+<% } %>

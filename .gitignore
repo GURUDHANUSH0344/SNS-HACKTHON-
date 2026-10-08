@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.production
+
+# SQLite database files
+*.sqlite
+*.sqlite-journal
+campus_ai.sqlite
+
+# Uploads directory (keep directory with .gitkeep)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# System logs & generated outputs
+*.log
+npm-debug.log*
+.system_generated/
+scratch/

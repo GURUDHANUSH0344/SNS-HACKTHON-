@@ -1,0 +1,142 @@
+<%- include('../partials/head', { pageTitle: 'AI Institutional Report Generator — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">AI Institutional Report Generator</h1>
+          <p class="page-subtitle">Automated Multi-Department Governance, Accreditation & Performance Briefings</p>
+        </div>
+      </div>
+
+      <% if (success) { %>
+        <div class="alert alert-success" style="margin-bottom: 1.5rem;">
+          ✓ <%= success %>
+        </div>
+      <% } %>
+
+      <% if (error) { %>
+        <div class="alert alert-danger" style="margin-bottom: 1.5rem;">
+          ⚠️ <%= error %>
+        </div>
+      <% } %>
+
+      <!-- Generator Control Card -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+          <h3 class="card-title">Generate New Executive AI Intelligence Report</h3>
+          <span class="badge badge-primary">Gemini AI Synthesis</span>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/ai/reports/generate" id="reportGenForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) auto; gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Department / School</label>
+              <select name="department" class="form-control" required>
+                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                <option value="Electronics & Communication">Electronics & Communication</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+                <option value="Institution-Wide Overview">Entire Institution Overview</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Academic Semester / Term</label>
+              <select name="semester" class="form-control" required>
+                <option value="Semester VI (Spring 2026)">Semester VI (Spring 2026)</option>
+                <option value="Semester V (Fall 2025)">Semester V (Fall 2025)</option>
+                <option value="Semester IV (Spring 2025)">Semester IV (Spring 2025)</option>
+                <option value="Annual Accreditation Cycle 2025-2026">Annual Accreditation Cycle 2025-2026</option>
+              </select>
+            </div>
+
+            <div>
+              <button type="submit" id="btnGenReport" class="btn btn-primary" style="height: 42px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+                Synthesize Report
+              </button>
+            </div>
+          </form>
+          <div id="genLoading" style="display: none; margin-top: 1rem; color: var(--primary); font-size: 0.85rem; font-weight: 600;">
+            ⏳ Generating report with CAMPUS AI synthesis engine... Please wait.
+          </div>
+        </div>
+      </div>
+
+      <!-- Generated Reports Archive Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Generated Institutional Reports Archive</h3>
+          <span class="badge badge-info"><%= reports.length %> Reports on Record</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Report Title & ID</th>
+                  <th>Department</th>
+                  <th>Semester</th>
+                  <th>Generated Date</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (reports && reports.length > 0) { %>
+                  <% reports.forEach(rep => { %>
+                    <tr>
+                      <td>
+                        <div style="font-weight: 700; color: var(--text-main);"><%= rep.title %></div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); max-width: 420px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                          <%= rep.summary %>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge badge-secondary" style="font-size: 0.75rem;"><%= rep.department %></span>
+                      </td>
+                      <td>
+                        <span style="font-size: 0.82rem;"><%= rep.semester %></span>
+                      </td>
+                      <td>
+                        <span style="font-size: 0.82rem; color: var(--text-secondary);"><%= new Date(rep.createdAt).toLocaleDateString() %></span>
+                      </td>
+                      <td style="text-align: right;">
+                        <a href="/ai/reports/<%= rep.id %>/pdf" class="btn btn-secondary btn-sm" target="_blank">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                          Download PDF
+                        </a>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📄</div>
+                      <p>No reports generated yet. Click "Synthesize Report" above to compile institutional intelligence.</p>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  document.getElementById('reportGenForm').addEventListener('submit', function() {
+    document.getElementById('btnGenReport').disabled = true;
+    document.getElementById('btnGenReport').textContent = 'Synthesizing...';
+    document.getElementById('genLoading').style.display = 'block';
+  });
+</script>
+
+<%- include('../partials/footer') %>

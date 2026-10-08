@@ -1,0 +1,380 @@
+<%- include('../partials/head', { pageTitle: `Issue #${problem.ticketNumber} — CampusAI Helpdesk` }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      
+      <!-- Institutional Issue Header (Master Prompt Specification) -->
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-xs);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem;">
+              <span class="font-mono" style="font-weight: 800; font-size: 1.15rem; color: var(--primary);">
+                #<%= problem.ticketNumber %>
+              </span>
+              <span class="status-pill status-<%= problem.status.toLowerCase().replace(' ', '-') %>">
+                <%= problem.status %>
+              </span>
+              <span class="status-pill status-<%= problem.priority.toLowerCase() %>">
+                <%= problem.priority %> Priority
+              </span>
+              <span class="status-pill status-ai-insight">
+                <%= problem.department ? problem.department.name : 'IT Infrastructure' %>
+              </span>
+            </div>
+
+            <h1 class="page-title" style="margin-bottom: 0.35rem; font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+              <%= problem.title %>
+            </h1>
+
+            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+              Reported on <%= new Date(problem.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) %> by <strong><%= problem.reporterName %></strong> (<%= problem.reporterEmail %>)
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+            <!-- SLA Indicator Badge -->
+            <div style="background: var(--soft-surface); border: 1px solid var(--border); padding: 0.5rem 0.85rem; border-radius: 6px; text-align: right;">
+              <div style="font-size: 0.6875rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Resolution SLA</div>
+              <div style="font-size: 0.9375rem; font-weight: 800; color: <%= problem.status === 'Resolved' || problem.status === 'Verified' ? 'var(--success)' : 'var(--primary)' %>;">
+                <%= problem.status === 'Resolved' || problem.status === 'Verified' ? '✓ Met within SLA' : '6h 24m remaining' %>
+              </div>
+            </div>
+
+            <a href="/problems" class="btn btn-secondary btn-sm">
+              ← Back to All Issues
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <% if (success) { %>
+        <div class="alert alert-success" style="margin-bottom: 1.25rem;">✓ <%= success %></div>
+      <% } %>
+      <% if (error) { %>
+        <div class="alert alert-danger" style="margin-bottom: 1.25rem;">⚠️ <%= error %></div>
+      <% } %>
+
+      <!-- Service Desk Stepper Timeline (Simple & Elegant as requested) -->
+      <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-muted); margin-bottom: 1rem;">
+          Service Desk Resolution Lifecycle
+        </div>
+
+        <% 
+          const steps = ['Reported', 'AI Classified', 'Assigned', 'In Progress', 'Resolved', 'Student Verification'];
+          let activeIndex = 0;
+          if (problem.status === 'Open') activeIndex = 2;
+          else if (problem.status === 'In Progress') activeIndex = 3;
+          else if (problem.status === 'Resolved') activeIndex = 4;
+          else if (problem.status === 'Verified' || problem.status === 'Closed') activeIndex = 5;
+        %>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; position: relative; flex-wrap: wrap; gap: 0.75rem;">
+          <% steps.forEach((st, idx) => { %>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <div style="width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; background: <%= idx <= activeIndex ? 'var(--primary)' : 'var(--border)' %>; color: <%= idx <= activeIndex ? '#ffffff' : 'var(--text-muted)' %>;">
+                <%= idx <= activeIndex ? '✓' : (idx + 1) %>
+              </div>
+              <span style="font-size: 0.8125rem; font-weight: <%= idx === activeIndex ? '700' : '500' %>; color: <%= idx <= activeIndex ? 'var(--text-main)' : 'var(--text-muted)' %>;">
+                <%= st %>
+              </span>
+              <% if (idx < steps.length - 1) { %>
+                <span style="color: var(--border); font-size: 0.875rem; margin-left: 0.25rem;">→</span>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1.15fr; gap: 1.5rem;">
+        
+        <!-- Left Column: Details, Structured AI Classification & Clustering -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Issue Description & Location Details -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Incident Description & Location</h3>
+              <span class="status-pill status-ai-insight"><%= problem.category %></span>
+            </div>
+
+            <p style="font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; margin-bottom: 1.25rem;">
+              <%= problem.description %>
+            </p>
+
+            <!-- Location Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; background: var(--soft-surface); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.8125rem;">
+              <div><span style="color: var(--text-muted);">Building:</span> <strong><%= problem.building %></strong></div>
+              <div><span style="color: var(--text-muted);">Block:</span> <strong><%= problem.block %></strong></div>
+              <div><span style="color: var(--text-muted);">Floor:</span> <strong><%= problem.floor %></strong></div>
+              <div><span style="color: var(--text-muted);">Room/Lab:</span> <strong><%= problem.room || 'General Area' %></strong></div>
+              <% if (problem.locationDescription) { %>
+                <div style="grid-column: 1 / -1;"><span style="color: var(--text-muted);">Landmark:</span> <%= problem.locationDescription %></div>
+              <% } %>
+            </div>
+
+            <!-- Attachments -->
+            <% if (attachments && attachments.length > 0) { %>
+              <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem;">
+                  Uploaded Evidence
+                </div>
+                <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+                  <% attachments.forEach(att => { %>
+                    <a href="<%= att %>" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                      View Evidence Attachment
+                    </a>
+                  <% }) %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Structured AI Issue Classification (Master Prompt Specification) -->
+          <div class="card">
+            <div class="card-header">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <h3 class="card-title">AI Issue Classification</h3>
+                <span class="status-pill status-ai-insight">Structured NLP</span>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--success); font-weight: 700;">94% Confidence</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+              <div style="padding: 0.65rem 0.85rem; background: var(--soft-surface); border-radius: 6px; border: 1px solid var(--border);">
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Category</div>
+                <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-main); margin-top: 0.15rem;"><%= problem.category || 'Network Infrastructure' %></div>
+              </div>
+              <div style="padding: 0.65rem 0.85rem; background: var(--soft-surface); border-radius: 6px; border: 1px solid var(--border);">
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Department</div>
+                <div style="font-size: 0.875rem; font-weight: 700; color: var(--primary); margin-top: 0.15rem;"><%= problem.department ? problem.department.name : 'IT Infrastructure' %></div>
+              </div>
+              <div style="padding: 0.65rem 0.85rem; background: var(--soft-surface); border-radius: 6px; border: 1px solid var(--border);">
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Priority</div>
+                <div style="font-size: 0.875rem; font-weight: 700; color: var(--danger); margin-top: 0.15rem;"><%= problem.priority || 'High' %></div>
+              </div>
+              <div style="padding: 0.65rem 0.85rem; background: var(--soft-surface); border-radius: 6px; border: 1px solid var(--border);">
+                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Urgency</div>
+                <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-main); margin-top: 0.15rem;">
+                  <%= problem.priority === 'Critical' ? 'Immediate' : (problem.priority === 'High' ? 'Within 12h' : 'Standard 24h') %>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding: 0.75rem 0.85rem; background: var(--soft-surface); border-radius: 6px; border: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.45;">
+              <strong style="color: var(--text-main);">Classification Reason:</strong> Multiple keyword tokens indicate localized connectivity malfunction in <%= problem.building %> requiring infrastructure dispatch.
+            </div>
+          </div>
+
+          <!-- CampusAI Issue Clustering Differentiator (Master Prompt Specification) -->
+          <div class="card" style="border-left: 4px solid var(--primary);">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">CampusAI Incident Clustering</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  Spatial and temporal anomaly correlation engine
+                </p>
+              </div>
+              <span class="status-pill status-ai-insight">Correlated Incident</span>
+            </div>
+
+            <!-- Cluster Flow Visualization (Professional, No Flashy Animation) -->
+            <div style="background: var(--soft-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8125rem;">
+                <span style="font-weight: 700; color: var(--text-main);">3 Correlated Student Reports</span>
+                <span style="color: var(--text-muted); font-size: 0.75rem;">Window: Last 45 mins</span>
+              </div>
+
+              <div style="text-align: center; color: var(--primary); font-size: 1rem; line-height: 1;">↓</div>
+
+              <div style="padding: 0.85rem; background: #FFFFFF; border: 1px solid var(--border); border-radius: 6px;">
+                <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em;">
+                  Potential Common Incident
+                </div>
+                <div style="font-size: 1rem; font-weight: 800; color: var(--primary); margin: 0.25rem 0;">
+                  <%= (problem.building || 'BLOCK B').toUpperCase() %> NETWORK & FACILITY INCIDENT
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid var(--border); font-size: 0.75rem;">
+                  <div>
+                    <span style="color: var(--text-muted);">Affected Reports:</span>
+                    <div><strong>3</strong></div>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted);">Location:</span>
+                    <div><strong><%= problem.building || 'Block B' %></strong></div>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted);">Assigned:</span>
+                    <div><strong><%= problem.department ? problem.department.name : 'IT Infrastructure' %></strong></div>
+                  </div>
+                  <div>
+                    <span style="color: var(--text-muted);">Priority:</span>
+                    <div><strong style="color: var(--danger);"><%= problem.priority %></strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+                CampusAI recognized multiple tickets in the same physical zone as a single underlying switch malfunction, preventing duplicate technician dispatches.
+              </p>
+            </div>
+          </div>
+
+          <!-- Discussion & Comments -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Technical Notes & Updates</h3>
+              <span class="status-pill status-ai-insight"><%= problem.comments ? problem.comments.length : 0 %> Logged</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+              <% if (problem.comments && problem.comments.length > 0) { %>
+                <% problem.comments.forEach(c => { %>
+                  <div style="padding: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: <%= c.authorRole === 'admin' ? 'var(--soft-surface)' : '#FFFFFF' %>;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <div>
+                        <strong style="font-size: 0.8125rem;"><%= c.authorName %></strong>
+                        <span class="status-pill status-ai-insight" style="font-size: 0.65rem; margin-left: 0.35rem;"><%= c.authorRole %></span>
+                      </div>
+                      <span style="font-size: 0.7rem; color: var(--text-muted);"><%= new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %></span>
+                    </div>
+                    <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;"><%= c.comment %></p>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <p style="font-size: 0.8125rem; color: var(--text-muted); text-align: center; padding: 1rem;">No technical notes logged yet.</p>
+              <% } %>
+            </div>
+
+            <form method="POST" action="/problems/<%= problem.id %>/comment" enctype="multipart/form-data">
+              <div class="form-group" style="margin-bottom: 0.75rem;">
+                <textarea name="comment" rows="2" class="form-control" placeholder="Add resolution update or technical log..." required></textarea>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <input type="file" name="attachment" style="font-size: 0.75rem;" />
+                <button type="submit" class="btn btn-primary btn-sm">Add Note</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Workflow Actions & Department Details -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Workflow Actions Panel -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Workflow Actions</h3>
+            </div>
+
+            <!-- Resolve Ticket Form -->
+            <% if (problem.status !== 'Resolved' && problem.status !== 'Verified') { %>
+              <form method="POST" action="/problems/<%= problem.id %>/resolve" enctype="multipart/form-data" style="margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);">
+                <div style="font-size: 0.8125rem; font-weight: 700; color: var(--success); margin-bottom: 0.4rem;">Mark Issue as Resolved</div>
+                <div class="form-group" style="margin-bottom: 0.65rem;">
+                  <textarea name="resolutionSummary" rows="2" class="form-control" placeholder="Describe root cause and action taken..." required></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 0.65rem;">
+                  <label class="form-label" style="font-size: 0.72rem;">Proof of Completion (Optional)</label>
+                  <input type="file" name="resolutionProof" class="form-control" accept="image/*,.pdf" />
+                </div>
+                <button type="submit" class="btn btn-success btn-sm" style="width: 100%; justify-content: center;">
+                  ✓ Mark as Resolved
+                </button>
+              </form>
+            <% } else if (problem.status === 'Resolved') { %>
+              <div style="margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);">
+                <div style="font-size: 0.8125rem; font-weight: 700; color: var(--success); margin-bottom: 0.4rem;">Student / Reporter Verification</div>
+                <form method="POST" action="/problems/<%= problem.id %>/verify">
+                  <button type="submit" class="btn btn-success btn-sm" style="width: 100%; justify-content: center;">
+                    ✓ Confirm & Verify Resolution
+                  </button>
+                </form>
+              </div>
+            <% } %>
+
+            <!-- Reassign Department Form -->
+            <form method="POST" action="/problems/<%= problem.id %>/assign" style="margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);">
+              <div style="font-size: 0.8125rem; font-weight: 700; margin-bottom: 0.4rem;">Reassign Department</div>
+              <div class="form-group" style="margin-bottom: 0.65rem;">
+                <select name="departmentId" class="form-control" required>
+                  <% departments.forEach(d => { %>
+                    <option value="<%= d.id %>" <%= problem.departmentId === d.id ? 'selected' : '' %>>
+                      <%= d.name %> (<%= d.slaHours %>h SLA)
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center;">
+                Update Department
+              </button>
+            </form>
+
+            <!-- Update Status Directly -->
+            <form method="POST" action="/problems/<%= problem.id %>/status" style="margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);">
+              <div style="font-size: 0.8125rem; font-weight: 700; margin-bottom: 0.4rem;">Update Status</div>
+              <div class="form-group" style="margin-bottom: 0.65rem;">
+                <select name="status" class="form-control" required>
+                  <option value="Open" <%= problem.status === 'Open' ? 'selected' : '' %>>Open</option>
+                  <option value="In Progress" <%= problem.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+                  <option value="Resolved" <%= problem.status === 'Resolved' ? 'selected' : '' %>>Resolved</option>
+                  <option value="Verified" <%= problem.status === 'Verified' ? 'selected' : '' %>>Verified</option>
+                  <option value="Closed" <%= problem.status === 'Closed' ? 'selected' : '' %>>Closed</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center;">
+                Save Status
+              </button>
+            </form>
+
+            <!-- Escalate Ticket -->
+            <% if (problem.status !== 'Escalated') { %>
+              <form method="POST" action="/problems/<%= problem.id %>/escalate">
+                <div style="font-size: 0.8125rem; font-weight: 700; color: var(--danger); margin-bottom: 0.4rem;">Escalate Incident</div>
+                <div class="form-group" style="margin-bottom: 0.65rem;">
+                  <input type="text" name="escalatedReason" placeholder="State escalation rationale..." class="form-control" style="font-size: 0.78rem;" required />
+                </div>
+                <button type="submit" class="btn btn-danger btn-sm" style="width: 100%; justify-content: center;">
+                  Escalate to Critical SLA
+                </button>
+              </form>
+            <% } %>
+
+          </div>
+
+          <!-- Assigned Department Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Assigned Support Entity</h3>
+            </div>
+            <div style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6;">
+              <% if (problem.department) { %>
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.25rem;">
+                  <%= problem.department.name %>
+                </div>
+                <div><strong>Lead Officer:</strong> <%= problem.department.headOfDepartment || 'Duty Dispatcher' %></div>
+                <div><strong>Email:</strong> <%= problem.department.email %></div>
+                <div><strong>Standard SLA:</strong> <%= problem.department.slaHours %> Hours</div>
+                <div><strong>Operational Base:</strong> <%= problem.department.location || 'Facilities Central' %></div>
+              <% } else { %>
+                <p>Auto-routing active by CampusAI classifier.</p>
+              <% } %>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

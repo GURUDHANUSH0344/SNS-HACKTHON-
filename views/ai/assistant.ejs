@@ -1,0 +1,132 @@
+<%- include('../partials/head', { pageTitle: 'CampusAI Assistant — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">CampusAI Assistant</h1>
+          <p class="page-subtitle">Conversational AI Mentor for Academics, Attendance Regulations, Campus Facilities, and Career Guidance</p>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <h3><span>🤖</span> CampusAI Assistant</h3>
+            <p>Integrated with your live academic records, fees ledger, and hostel information</p>
+          </div>
+          <span class="status-pill status-paid" style="background: rgba(255,255,255,0.2); color: #fff;">
+            Gemini & Neural Heuristic Engine Online
+          </span>
+        </div>
+
+        <div class="chat-messages-area" id="dedicatedChatArea">
+          <div class="chat-msg bot">
+            <div class="msg-avatar">AI</div>
+            <div class="msg-bubble">
+              Hello <%= student ? student.name.split(' ')[0] : 'there' %>! I am your <strong>CampusAI Assistant</strong>.
+              <br/><br/>
+              I have direct visibility into your academic profile. How can I help you today? You can ask about:
+              <br/>
+              • <strong>Attendance:</strong> "What is my attendance in Data Structures and how many classes can I skip?"<br/>
+              • <strong>Examinations:</strong> "What is the weightage of internal marks vs semester finals?"<br/>
+              • <strong>Fees:</strong> "Do I have any pending examination or tuition invoices?"<br/>
+              • <strong>Hostel & Amenities:</strong> "Where is Turing Lab B-302 and what are its operating hours?"<br/>
+              • <strong>Career:</strong> "What skills do I need to prepare for a Full Stack AI Engineer campus placement?"
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-quick-suggestions">
+          <span class="suggestion-pill" onclick="sendPrompt('How many classes do I need to attend to reach 75% attendance?')">
+            Target 75% Attendance Rules
+          </span>
+          <span class="suggestion-pill" onclick="sendPrompt('Check my pending fee invoice details and payment methods')">
+            Check Fee Invoices
+          </span>
+          <span class="suggestion-pill" onclick="sendPrompt('Where is the central digital library and what are its hours?')">
+            Central Digital Library Hours
+          </span>
+          <span class="suggestion-pill" onclick="sendPrompt('Recommend top skills and certifications for campus placement')">
+            Career Placement Roadmap
+          </span>
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text" id="dedicatedChatInput" placeholder="Ask CampusAI anything about your university ecosystem..." />
+          <button type="button" onclick="handleDedicatedChat()" class="btn btn-primary">
+            Send Message
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  function sendPrompt(text) {
+    document.getElementById('dedicatedChatInput').value = text;
+    handleDedicatedChat();
+  }
+
+  async function handleDedicatedChat() {
+    const input = document.getElementById('dedicatedChatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const area = document.getElementById('dedicatedChatArea');
+
+    // Add user bubble
+    const userDiv = document.createElement('div');
+    userDiv.className = 'chat-msg user';
+    userDiv.innerHTML = `<div class="msg-avatar">You</div><div class="msg-bubble">${msg}</div>`;
+    area.appendChild(userDiv);
+    input.value = '';
+    area.scrollTop = area.scrollHeight;
+
+    // Add typing
+    const typing = document.createElement('div');
+    typing.className = 'chat-msg bot';
+    typing.id = 'dedicatedTyping';
+    typing.innerHTML = `<div class="msg-avatar">AI</div><div class="msg-bubble"><em>CampusAI is analyzing your campus records...</em></div>`;
+    area.appendChild(typing);
+    area.scrollTop = area.scrollHeight;
+
+    try {
+      const res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      typing.remove();
+
+      const botDiv = document.createElement('div');
+      botDiv.className = 'chat-msg bot';
+      const formatted = (data.reply || 'Information retrieved.')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br/>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      botDiv.innerHTML = `<div class="msg-avatar">AI</div><div class="msg-bubble">${formatted}</div>`;
+      area.appendChild(botDiv);
+      area.scrollTop = area.scrollHeight;
+    } catch (e) {
+      typing.remove();
+      showToast('Network error during AI chat', 'error');
+    }
+  }
+
+  document.getElementById('dedicatedChatInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleDedicatedChat();
+  });
+</script>
+
+<%- include('../partials/footer') %>

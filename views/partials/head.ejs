@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'CAMPUS AI — Intelligent Digital Campus Ecosystem' %></title>
+  <meta name="description" content="CAMPUS AI - Integrated Smart Campus AI SaaS ecosystem for students, faculty, and administrators.">
+  
+  <!-- Modern Typography: Plus Jakarta Sans & Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Institutional Light Blue-and-White Theme Enforcer -->
+  <script>
+    (function() {
+      // Force institutional Light Theme (Navy, Blue & White)
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('campus_ai_theme', 'light');
+      
+      const savedSidebar = localStorage.getItem('campus_ai_sidebar_collapsed');
+      if (savedSidebar === 'true') {
+        document.documentElement.classList.add('sidebar-is-collapsed');
+      }
+    })();
+  </script>
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/faculty.css">
+  <link rel="stylesheet" href="/css/chat.css">
+
+  <!-- Chart.js for Responsive Data Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+</head>
+<body>

@@ -1,0 +1,384 @@
+<%- include('../partials/head', { pageTitle: 'Student Academic Dashboard — CampusAI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <% 
+        const now = new Date();
+        const hour = now.getHours();
+        let greeting = 'Good morning';
+        if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
+        else if (hour >= 17) greeting = 'Good evening';
+        const pendingAsgCount = allAssignments ? allAssignments.filter(a => !submittedIds.includes(a.id)).length : 0;
+        const completedAsgCount = allAssignments ? allAssignments.length - pendingAsgCount : 8;
+        const totalAsgCount = allAssignments && allAssignments.length > 0 ? allAssignments.length : 10;
+        const totalPendingFee = (pendingFees || []).reduce((a, b) => a + (b.amount - (b.paidAmount || 0)), 0);
+      %>
+
+      <!-- Academic Header -->
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-xs);">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.25rem;">
+            <h1 class="page-title" style="margin-bottom: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+              <%= greeting %>, <%= student.name.split(' ')[0] %>
+            </h1>
+            <span class="status-pill status-ai-insight" style="font-size: 0.7rem; font-weight: 700;">Student Portal</span>
+          </div>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Here's your academic overview • <%= student.course %> • Semester <%= student.semester %> (Sec <%= student.section %>) • ID: <code class="font-mono"><%= student.studentId %></code>
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <a href="/ai/performance-prediction" class="btn btn-secondary btn-sm">
+            Performance Simulator
+          </a>
+          <a href="/ai/learning-path" class="btn btn-primary btn-sm">
+            7-Day Study Plan →
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI Row (Exact Master Prompt Specification) -->
+      <div class="grid-cards" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 1.5rem;">
+        
+        <!-- Attendance -->
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Attendance</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+              <%= attendancePercentage %>%
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 0.2rem;">
+              +4% from last month • <%= attendancePercentage >= 75 ? 'Safe (≥75%)' : 'Shortage Warning' %>
+            </div>
+          </div>
+          <div class="stat-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+
+        <!-- Academic Performance -->
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Academic Performance</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+              <%= avgMarks %>%
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              SGPA: <strong><%= aiPrediction ? aiPrediction.predictedSgpa : '8.4' %>/10</strong> • <%= aiPrediction ? aiPrediction.performanceTier : 'Distinction' %>
+            </div>
+          </div>
+          <div class="stat-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+          </div>
+        </div>
+
+        <!-- Assignments -->
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Assignments</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+              <%= completedAsgCount %> / <%= totalAsgCount %>
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              <%= pendingAsgCount %> pending coursework items
+            </div>
+          </div>
+          <div class="stat-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+        </div>
+
+        <!-- Academic Risk -->
+        <div class="card stat-card">
+          <div class="stat-info">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: 600;">Academic Risk</span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: <%= attendancePercentage >= 75 ? 'var(--success)' : 'var(--warning)' %>; margin-top: 0.25rem;">
+              <%= attendancePercentage >= 75 ? 'Low' : 'Medium' %>
+            </h2>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              Risk index: <%= attendancePercentage >= 75 ? '18/100 (Safe)' : '48/100 (Monitoring)' %>
+            </div>
+          </div>
+          <div class="stat-icon <%= attendancePercentage >= 75 ? 'green' : 'amber' %>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Layout Split: Academic Intelligence & Personalized Learning -->
+      <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        
+        <!-- Left: AI Insights & Explainable Academic Risk -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- AI Insights Card (Master Prompt Specification) -->
+          <div class="card">
+            <div class="card-header">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-pill status-ai-insight">AI Insight</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Calibrated with continuous evaluation data</span>
+              </div>
+              <a href="/ai/learning-path" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">View Study Plan</a>
+            </div>
+
+            <div style="font-size: 0.9375rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; line-height: 1.45;">
+              <%= aiPrediction ? aiPrediction.forecastNote : 'Your technical coursework progress is stable, but Mathematics requires targeted revision before upcoming examinations.' %>
+            </div>
+
+            <div style="background: var(--soft-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+              <div style="font-size: 0.78125rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                Why this matters:
+              </div>
+              <ul style="padding-left: 1.25rem; font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.55; margin: 0;">
+                <li>Attendance is currently at <%= attendancePercentage %>% (<%= attendancePercentage >= 75 ? 'meets institutional requirements' : 'below 75% target threshold' %>)</li>
+                <li><%= pendingAsgCount %> assignment<%= pendingAsgCount === 1 ? '' : 's' %> pending completion across active coursework modules</li>
+                <li>Recent marks reflect <%= avgMarks %>% average, indicating specific focus needed on advanced topics</li>
+              </ul>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--border);">
+              <div style="font-size: 0.8125rem; color: var(--text-secondary);">
+                <strong>Recommended action:</strong> Complete pending assignments and attend next scheduled practice sessions.
+              </div>
+              <a href="/ai/learning-path" class="btn btn-primary btn-sm">
+                Open Roadmap →
+              </a>
+            </div>
+          </div>
+
+          <!-- Explainable Academic Risk Card (Master Prompt Specification) -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Explainable Academic Risk Assessment</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  Automated risk index synthesis
+                </p>
+              </div>
+              <span class="status-pill <%= attendancePercentage >= 75 ? 'status-low' : 'status-medium' %>">
+                <%= attendancePercentage >= 75 ? 'LOW RISK' : 'MEDIUM RISK' %>
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem;">
+              <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">
+                <%= attendancePercentage >= 75 ? '24' : '62' %>
+              </div>
+              <div style="font-size: 0.875rem; color: var(--text-muted); font-weight: 500;">/ 100 Risk Score</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; padding: 0.5rem 0.75rem; background: var(--soft-surface); border-radius: 6px;">
+                <span style="color: var(--text-secondary);">Attendance Trajectory</span>
+                <strong style="color: <%= attendancePercentage >= 75 ? 'var(--success)' : 'var(--warning)' %>;">
+                  <%= attendancePercentage >= 75 ? 'Above target (Safe)' : 'Below target' %>
+                </strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; padding: 0.5rem 0.75rem; background: var(--soft-surface); border-radius: 6px;">
+                <span style="color: var(--text-secondary);">Recent Internal Marks</span>
+                <strong style="color: <%= avgMarks >= 65 ? 'var(--success)' : 'var(--warning)' %>;">
+                  <%= avgMarks >= 65 ? 'Consistent' : 'Declining' %>
+                </strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; padding: 0.5rem 0.75rem; background: var(--soft-surface); border-radius: 6px;">
+                <span style="color: var(--text-secondary);">Assignments Pipeline</span>
+                <strong><%= pendingAsgCount %> pending</strong>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 0.78125rem; font-weight: 700; color: var(--text-main);">Prescribed Interventions</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">Review weak modules & complete pending deliverables</div>
+              </div>
+              <a href="/ai/performance-prediction" class="btn btn-secondary btn-sm">
+                View Improvement Plan →
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Personalized Learning & Today's Focus -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Today's Learning Plan (Master Prompt Specification) -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Today's Focus</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                  Personalized priority curriculum items
+                </p>
+              </div>
+              <span class="status-pill status-ai-insight">AI Adaptive</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+              
+              <!-- Topic 1 -->
+              <div style="padding: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--soft-surface);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-main);">1. Mathematics — Integration</strong>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem;">Definite integrals & substitution method</div>
+                  </div>
+                  <span class="status-pill status-high">Priority High</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <span>Est. Time: 45 min</span>
+                  <a href="/ai/quiz" class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.65rem;">Practice →</a>
+                </div>
+              </div>
+
+              <!-- Topic 2 -->
+              <div style="padding: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--soft-surface);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-main);">2. Python — Data Structures</strong>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem;">Binary trees & graph traversals</div>
+                  </div>
+                  <span class="status-pill status-medium">Priority Med</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <span>Est. Time: 30 min</span>
+                  <a href="/ai/quiz" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.65rem;">Solve 5 MCQs</a>
+                </div>
+              </div>
+
+              <!-- Topic 3 -->
+              <div style="padding: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--soft-surface);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+                  <div>
+                    <strong style="font-size: 0.875rem; color: var(--text-main);">3. Database — SQL Joins</strong>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem;">Inner, outer, and indexed joins</div>
+                  </div>
+                  <span class="status-pill status-low">Priority Low</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <span>Est. Time: 20 min</span>
+                  <a href="/ai/learning-path" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 0.25rem 0.65rem;">View Notes</a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Quick Study Tools Navigation -->
+          <div class="card">
+            <h3 class="card-title" style="font-size: 0.9375rem; margin-bottom: 0.85rem;">Student Academic Tools</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
+              <a href="/ai/performance-prediction" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                Simulator
+              </a>
+              <a href="/student/results" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                Exam Results
+              </a>
+              <a href="/student/attendance" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                Attendance
+              </a>
+              <a href="/student/assignments" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                Assignments
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Examination Scores & Assignments Table Strip -->
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem;">
+        
+        <!-- Academic Examination Transcripts -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Academic Examination Transcripts</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                Evaluations recorded in institutional ledger
+              </p>
+            </div>
+            <a href="/student/results" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">View All →</a>
+          </div>
+
+          <% if (exams && exams.length > 0) { %>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Exam Type</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Grade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% exams.slice(0, 4).forEach(ex => { %>
+                    <tr>
+                      <td><strong><%= ex.subjectName %></strong></td>
+                      <td><%= ex.examType %></td>
+                      <td><%= ex.marksObtained %> / <%= ex.maxMarks %></td>
+                      <td><strong><%= ex.percentage %>%</strong></td>
+                      <td><span class="status-pill status-low"><%= ex.grade %></span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.8125rem;">
+              No examination transcripts published yet for the current term.
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Coursework Assignments Pipeline -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Coursework Assignments</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                Submission status & approaching deadlines
+              </p>
+            </div>
+            <a href="/student/assignments" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">Assignment Hub →</a>
+          </div>
+
+          <% if (allAssignments && allAssignments.length > 0) { %>
+            <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+              <% allAssignments.slice(0, 4).forEach(asg => { %>
+                <% const isSubmitted = submittedIds.includes(asg.id); %>
+                <div style="padding: 0.75rem 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--soft-surface); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-main);"><%= asg.title %></div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem;"><%= asg.subjectName %> • Due: <%= asg.dueDate %></div>
+                  </div>
+                  <span class="status-pill <%= isSubmitted ? 'status-low' : 'status-high' %>">
+                    <%= isSubmitted ? 'Submitted' : 'Pending' %>
+                  </span>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.8125rem;">
+              No active assignments currently assigned.
+            </div>
+          <% } %>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

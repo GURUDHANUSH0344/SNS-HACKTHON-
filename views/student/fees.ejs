@@ -1,0 +1,122 @@
+<%- include('../partials/head', { pageTitle: 'My Fee Invoices & Receipts — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">My Fee Invoices & Digital Receipts</h1>
+          <p class="page-subtitle">Semester Tuition, Hostel Rent, Examination Dues, and Verifiable PDF Receipts</p>
+        </div>
+      </div>
+
+      <!-- Fees Table -->
+      <div class="table-container">
+        <div class="table-header-tools">
+          <span style="font-weight: 600; font-size: 0.875rem;">Billing History (<%= fees.length %>)</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Settle dues online via UPI / Net Banking with immediate receipt download</span>
+        </div>
+
+        <% if (fees && fees.length > 0) { %>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice No</th>
+                  <th>Fee Particulars</th>
+                  <th>Total Due (INR)</th>
+                  <th>Amount Paid</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% fees.forEach(fee => { %>
+                  <% const balance = Math.max(0, fee.amount - (fee.paidAmount || 0)); %>
+                  <tr>
+                    <td><strong class="font-mono"><%= fee.invoiceNo %></strong></td>
+                    <td>
+                      <div style="font-weight: 600;"><%= fee.title %></div>
+                      <% if (fee.paymentMethod) { %>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Paid via: <%= fee.paymentMethod %> on <%= fee.paymentDate %></div>
+                      <% } %>
+                    </td>
+                    <td><strong>₹ <%= fee.amount.toLocaleString('en-IN') %></strong></td>
+                    <td><span style="color: var(--success); font-weight: 600;">₹ <%= (fee.paidAmount || 0).toLocaleString('en-IN') %></span></td>
+                    <td><%= fee.dueDate %></td>
+                    <td>
+                      <span class="status-pill status-<%= fee.status.toLowerCase() %>"><%= fee.status %></span>
+                    </td>
+                    <td>
+                      <div style="display: flex; gap: 0.4rem;">
+                        <% if (fee.status !== 'Paid') { %>
+                          <button type="button" onclick="initiateFeePayment('<%= fee.id %>', '<%= fee.invoiceNo %>', '<%= fee.title %>', <%= balance %>)" class="btn btn-success btn-sm">
+                            💳 Pay Online
+                          </button>
+                        <% } %>
+                        <a href="/fees/<%= fee.id %>/receipt" class="btn btn-secondary btn-sm" title="Download Official PDF Receipt">
+                          📄 PDF Receipt
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="empty-state">
+            <div class="empty-icon">💳</div>
+            <div class="empty-title">No Fee Invoices Found</div>
+            <p class="empty-text">You have no pending or past fee records in your account.</p>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Pay Fee Modal -->
+<div class="modal-overlay" id="payFeeModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Settle Fee Dues Online</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form id="payFeeForm" method="POST">
+      <div class="modal-body">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.8125rem; color: var(--text-muted);">Invoice No: <strong id="payInvoiceNo" style="color: var(--text-main);"></strong></div>
+          <div style="font-size: 1rem; font-weight: 700; margin: 0.25rem 0;" id="payTitle"></div>
+          <div style="font-size: 0.875rem; color: var(--warning); font-weight: 600;">Outstanding Balance: <span id="payBalance"></span></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Payment Amount (₹ INR)</label>
+          <input type="number" step="100" id="payAmountInput" name="paidAmount" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select Payment Gateway / Method</label>
+          <select name="paymentMethod" class="form-control" required>
+            <option value="UPI (Google Pay / PhonePe)">UPI (Google Pay / PhonePe / Paytm)</option>
+            <option value="Net Banking (HDFC, SBI, ICICI)">Net Banking</option>
+            <option value="Debit / Credit Card">Debit / Credit Card</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success">Pay & Generate PDF Receipt</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

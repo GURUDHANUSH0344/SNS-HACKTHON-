@@ -1,0 +1,107 @@
+<%- include('../partials/head', { pageTitle: 'AI Dynamic Quiz Generator — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">AI Dynamic Quiz Generator & Evaluation Arena</h1>
+          <p class="page-subtitle">On-Demand Adaptive Multiple-Choice Testing with Immediate Scoring, Feedback, and XP Gamification</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 1.5rem;">
+        
+        <!-- Generator Controls Form (Section 31) -->
+        <div class="card">
+          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">
+            ⚡ Configure On-Demand Quiz
+          </h3>
+          <form id="quizGenForm" onsubmit="handleGenerateQuiz(event)">
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <select name="subject" class="form-control" required>
+                <% subjects.forEach(sub => { %>
+                  <option value="<%= sub.name %>"><%= sub.name %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Unit Scope</label>
+              <input type="text" name="unit" class="form-control" value="Unit 2" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Specific Topic Focus</label>
+              <input type="text" name="topic" class="form-control" value="Binary Trees & Graph Traversals" required />
+            </div>
+
+            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label class="form-label">Difficulty Level</label>
+                <select name="difficulty" class="form-control">
+                  <option value="Easy">Easy</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Questions Count</label>
+                <select name="count" class="form-control">
+                  <option value="5" selected>5 MCQs</option>
+                  <option value="10">10 MCQs</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" id="genQuizBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.5rem;">
+              ⚡ Generate Quiz
+            </button>
+          </form>
+
+          <!-- Past Attempts History -->
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+            <h4 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem;">Your Past Quiz Attempts (<%= attempts.length %>)</h4>
+            <% if (attempts && attempts.length > 0) { %>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 240px; overflow-y: auto;">
+                <% attempts.forEach(att => { %>
+                  <div style="padding: 0.65rem; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-size: 0.8125rem; font-weight: 600;"><%= att.quiz ? att.quiz.subject : 'Subject Quiz' %></div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);"><%= new Date(att.completedAt).toLocaleDateString('en-IN') %> • +<%= att.xpEarned %> XP</div>
+                    </div>
+                    <span class="status-pill <%= att.percentage >= 80 ? 'status-paid' : 'status-unpaid' %>">
+                      <%= att.percentage %>%
+                    </span>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">No quiz attempts logged yet.</p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Live Interactive Quiz Arena -->
+        <div>
+          <div id="quizArena" style="display: none;"></div>
+
+          <div id="quizPlaceholder" class="card empty-state" style="padding: 3.5rem 1.5rem;">
+            <div class="empty-icon">⚡</div>
+            <div class="empty-title">AI Quiz Arena Ready</div>
+            <p class="empty-text">Select your topic parameters on the left to generate an adaptive AI quiz and test your conceptual mastery.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

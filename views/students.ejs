@@ -1,0 +1,301 @@
+<%- include('partials/head', { pageTitle: 'Student Directory & Management — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Student Directory & Records</h1>
+          <p class="page-subtitle">Enrolled Student Profiles, Academic Roster, and Identity Management</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" onclick="openModal('addStudentModal')" class="btn btn-primary btn-sm">
+            + Add Student
+          </button>
+          <button type="button" onclick="openModal('bulkStudentsModal')" class="btn btn-secondary btn-sm">
+            📥 Bulk Excel Import
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="card" style="margin-bottom: 1.25rem; padding: 1rem 1.25rem;">
+        <form action="/admissions/students" method="GET" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+          <div style="display: flex; gap: 1rem; flex: 1; min-width: 280px;">
+            <input type="text" name="search" class="form-control" placeholder="Search by student ID, name, or email..." value="<%= search %>" style="max-width: 320px;" />
+            
+            <select name="course" class="form-control" style="max-width: 220px;" onchange="this.form.submit()">
+              <option value="all" <%= course === 'all' ? 'selected' : '' %>>All Engineering Courses</option>
+              <option value="Computer Science" <%= course.includes('Computer Science') ? 'selected' : '' %>>Computer Science</option>
+              <option value="Artificial Intelligence" <%= course.includes('Artificial Intelligence') ? 'selected' : '' %>>AI & Data Science</option>
+            </select>
+
+            <select name="year" class="form-control" style="max-width: 140px;" onchange="this.form.submit()">
+              <option value="all" <%= year === 'all' ? 'selected' : '' %>>All Years</option>
+              <option value="1" <%= year === '1' ? 'selected' : '' %>>Year 1</option>
+              <option value="2" <%= year === '2' ? 'selected' : '' %>>Year 2</option>
+              <option value="3" <%= year === '3' ? 'selected' : '' %>>Year 3</option>
+              <option value="4" <%= year === '4' ? 'selected' : '' %>>Year 4</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a href="/admissions/students" class="btn btn-secondary btn-sm">Reset</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Students Table -->
+      <div class="table-container">
+        <div class="table-header-tools">
+          <span style="font-weight: 600; font-size: 0.875rem;">Active Students Enrolled (<%= students.length %>)</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time database records synchronized across attendance and exams</span>
+        </div>
+
+        <% if (students && students.length > 0) { %>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Student Name</th>
+                  <th>Course & Branch</th>
+                  <th>Year / Sem</th>
+                  <th>Contact Information</th>
+                  <th>Campus Address</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% students.forEach(st => { %>
+                  <tr>
+                    <td><strong class="font-mono"><%= st.studentId %></strong></td>
+                    <td>
+                      <div style="font-weight: 600;"><%= st.name %></div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);">Enrolled: <%= st.enrollmentDate %></div>
+                    </td>
+                    <td><%= st.course %></td>
+                    <td>
+                      <span style="font-size: 0.8125rem; font-weight: 600;">Year <%= st.year %></span>
+                      <span style="font-size: 0.75rem; color: var(--text-muted);">• Sem <%= st.semester %> (Sec <%= st.section %>)</span>
+                    </td>
+                    <td>
+                      <div><%= st.email %></div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);"><%= st.phone || 'N/A' %></div>
+                    </td>
+                    <td style="font-size: 0.8125rem; max-width: 200px;">
+                      <%= st.address || 'Day Scholar' %>
+                    </td>
+                    <td>
+                      <span class="status-pill status-<%= st.status.toLowerCase() %>"><%= st.status %></span>
+                    </td>
+                    <td>
+                      <div style="display: flex; gap: 0.35rem;">
+                        <button type="button" onclick="openEditStudentModal('<%= st.id %>', '<%= st.name %>', '<%= st.email %>', '<%= st.phone %>', '<%= st.course %>', '<%= st.year %>', '<%= st.semester %>', '<%= st.section %>', '<%= st.address %>', '<%= st.status %>')" class="btn btn-secondary btn-sm" title="Edit Student">
+                          ✏️ Edit
+                        </button>
+                        <form action="/admissions/students/<%= st.id %>/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Permanently remove student <%= st.name %>?');">
+                          <button type="submit" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Delete Student">
+                            🗑️
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-title">No Students Found</div>
+            <p class="empty-text">No student profiles match your search criteria.</p>
+            <button onclick="openModal('addStudentModal')" class="btn btn-primary btn-sm">+ Add Student</button>
+          </div>
+        <% } %>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="addStudentModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Add New Student Profile</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/admissions/students" method="POST">
+      <div class="modal-body">
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Student ID (Auto if blank)</label>
+            <input type="text" name="studentId" class="form-control" placeholder="e.g. CAI-2026-0205" />
+          </div>
+          <div>
+            <label class="form-label">Full Name</label>
+            <input type="text" name="name" class="form-control" placeholder="Student name" required />
+          </div>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Email Address</label>
+            <input type="email" name="email" class="form-control" placeholder="student@campusai.edu" required />
+          </div>
+          <div>
+            <label class="form-label">Phone Number</label>
+            <input type="text" name="phone" class="form-control" placeholder="+91 98765 43210" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Degree Course</label>
+          <select name="course" class="form-control" required>
+            <option value="B.Tech Computer Science & Engineering">B.Tech Computer Science & Engineering</option>
+            <option value="B.Tech Artificial Intelligence & Data Science">B.Tech Artificial Intelligence & Data Science</option>
+            <option value="B.Tech Electronics & Communication">B.Tech Electronics & Communication</option>
+            <option value="B.Tech Mechanical Engineering">B.Tech Mechanical Engineering</option>
+          </select>
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Year</label>
+            <select name="year" class="form-control">
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3" selected>Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Semester</label>
+            <input type="number" name="semester" class="form-control" value="5" min="1" max="8" />
+          </div>
+          <div>
+            <label class="form-label">Section</label>
+            <input type="text" name="section" class="form-control" value="A" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address / Hostel Accommodation</label>
+          <input type="text" name="address" class="form-control" placeholder="Hostel Block A, Room 204" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div class="modal-overlay" id="editStudentModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Student Profile</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form id="editStudentForm" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="editName" name="name" class="form-control" required />
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Email</label>
+            <input type="email" id="editEmail" name="email" class="form-control" required />
+          </div>
+          <div>
+            <label class="form-label">Phone</label>
+            <input type="text" id="editPhone" name="phone" class="form-control" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Course</label>
+          <input type="text" id="editCourse" name="course" class="form-control" required />
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Year</label>
+            <input type="number" id="editYear" name="year" class="form-control" min="1" max="4" required />
+          </div>
+          <div>
+            <label class="form-label">Semester</label>
+            <input type="number" id="editSemester" name="semester" class="form-control" min="1" max="8" required />
+          </div>
+          <div>
+            <label class="form-label">Section</label>
+            <input type="text" id="editSection" name="section" class="form-control" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select id="editStatus" name="status" class="form-control">
+            <option value="Active">Active</option>
+            <option value="Alumni">Alumni</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" id="editAddress" name="address" class="form-control" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Bulk Students Modal -->
+<div class="modal-overlay" id="bulkStudentsModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Bulk Import Students (Excel / CSV)</h3>
+      <button class="modal-close" data-dismiss="modal">✕</button>
+    </div>
+    <form action="/admissions/students/bulk-upload" method="POST" enctype="multipart/form-data">
+      <div class="modal-body">
+        <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Upload spreadsheet (.xlsx, .xls, .csv). Supported columns: <code>studentId</code>, <code>name</code>, <code>email</code>, <code>course</code>, <code>year</code>, <code>semester</code>, <code>section</code>.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Select Spreadsheet File</label>
+          <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Upload & Import</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openEditStudentModal(id, name, email, phone, course, year, sem, sec, addr, status) {
+    document.getElementById('editStudentForm').action = `/admissions/students/${id}/edit`;
+    document.getElementById('editName').value = name;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('editPhone').value = phone || '';
+    document.getElementById('editCourse').value = course;
+    document.getElementById('editYear').value = year;
+    document.getElementById('editSemester').value = sem;
+    document.getElementById('editSection').value = sec;
+    document.getElementById('editAddress').value = addr || '';
+    document.getElementById('editStatus').value = status || 'Active';
+    openModal('editStudentModal');
+  }
+</script>
+
+<%- include('partials/footer') %>

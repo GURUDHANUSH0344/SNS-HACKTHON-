@@ -1,0 +1,90 @@
+<%- include('../partials/head', { pageTitle: 'Hostel Accommodation — CAMPUS AI' }) %>
+
+<div class="app-layout">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/navbar') %>
+
+    <main class="content-container">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Hostel Accommodation & Resident Details</h1>
+          <p class="page-subtitle">Residential Block, Room Allotment, Amenities, and Living Rules</p>
+        </div>
+        <div>
+          <a href="/problems/new" class="btn btn-secondary btn-sm">
+            🚨 Report Hostel Maintenance Issue
+          </a>
+        </div>
+      </div>
+
+      <% if (hostel) { %>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+          
+          <div class="card">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">
+              🏢 Your Allocated Room & Bed
+            </h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; font-size: 0.875rem;">
+              <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Residential Block</span>
+                <div style="font-size: 1.125rem; font-weight: 700; margin-top: 0.2rem;"><%= hostel.block %></div>
+              </div>
+
+              <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Room & Bed</span>
+                <div style="font-size: 1.125rem; font-weight: 700; color: var(--primary); margin-top: 0.2rem;">
+                  Room <%= hostel.roomNumber %> • <%= hostel.bedNumber %>
+                </div>
+              </div>
+
+              <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Room Configuration</span>
+                <div style="font-size: 1rem; font-weight: 600; margin-top: 0.2rem;"><%= hostel.roomType %></div>
+              </div>
+
+              <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                <span style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Monthly Room Rent</span>
+                <div style="font-size: 1rem; font-weight: 600; color: var(--success); margin-top: 0.2rem;">
+                  ₹ <%= hostel.rentPerMonth.toLocaleString('en-IN') %>/month
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-secondary);">
+              <div><strong>Check-in Date:</strong> <%= hostel.checkInDate || 'August 2026' %></div>
+              <div><strong>Allocation Status:</strong> <span class="status-pill status-paid"><%= hostel.status %></span></div>
+              <% if (hostel.remarks) { %>
+                <div style="margin-top: 0.35rem;"><strong>Warden Notes:</strong> <%= hostel.remarks %></div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Residential Guidelines & Amenities -->
+          <div class="card">
+            <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">📋 Residential Guidelines</h3>
+            <ul style="font-size: 0.8125rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem; padding-left: 1.25rem;">
+              <li>Hostel gates curfew: 9:00 PM nightly.</li>
+              <li>High-speed Wi-Fi access available 24/7 across all residential floors.</li>
+              <li>Mess dining timings: Breakfast (7:30-9:00 AM), Lunch (12:30-2:00 PM), Dinner (7:30-9:30 PM).</li>
+              <li>Water coolers and hot water geysers available on each wing.</li>
+              <li>Study rooms on 2nd and 4th floors open till 1:00 AM.</li>
+            </ul>
+          </div>
+
+        </div>
+      <% } else { %>
+        <div class="card empty-state">
+          <div class="empty-icon">🏢</div>
+          <div class="empty-title">Day Scholar Status</div>
+          <p class="empty-text">You are registered as a day scholar. If you require on-campus residential accommodation, apply through the Hostel Administration desk.</p>
+        </div>
+      <% } %>
+
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
