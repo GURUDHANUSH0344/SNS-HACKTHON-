@@ -1,5 +1,12 @@
 <%- include('partials/head', { pageTitle: 'Institutional Registration — CampusAI University Portal' }) %>
 
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>
+
 <div class="auth-register-container">
   <div class="auth-register-card">
 
@@ -330,12 +337,12 @@
                 Designation <span style="color: var(--danger); font-weight: bold;">*</span>
               </label>
               <select id="adminDesignation" name="adminDesignation" class="form-control">
-                <option value="Administrator" selected>Administrator</option>
-                <option value="HOD">HOD</option>
-                <option value="Principal">Principal</option>
-                <option value="Academic Coordinator">Academic Coordinator</option>
-                <option value="System Administrator">System Administrator</option>
-                <option value="Other">Other</option>
+                <option value="Administrator" <%= (typeof formData !== 'undefined' && formData.adminDesignation === 'Administrator') ? 'selected' : (!formData?.adminDesignation ? 'selected' : '') %>>Administrator</option>
+                <option value="HOD" <%= (typeof formData !== 'undefined' && formData.adminDesignation === 'HOD') ? 'selected' : '' %>>HOD</option>
+                <option value="Principal" <%= (typeof formData !== 'undefined' && formData.adminDesignation === 'Principal') ? 'selected' : '' %>>Principal</option>
+                <option value="Academic Coordinator" <%= (typeof formData !== 'undefined' && formData.adminDesignation === 'Academic Coordinator') ? 'selected' : '' %>>Academic Coordinator</option>
+                <option value="System Administrator" <%= (typeof formData !== 'undefined' && formData.adminDesignation === 'System Administrator') ? 'selected' : '' %>>System Administrator</option>
+                <option value="Other" <%= (typeof formData !== 'undefined' && formData.adminDesignation === 'Other') ? 'selected' : '' %>>Other</option>
               </select>
             </div>
           </div>
@@ -346,14 +353,14 @@
                 Department / Administration Unit <span style="color: var(--danger); font-weight: bold;">*</span>
               </label>
               <select id="adminDepartment" name="adminDepartment" class="form-control">
-                <option value="Academic Administration" selected>Academic Administration</option>
-                <option value="Examination Cell">Examination Cell</option>
-                <option value="Registrar Office">Registrar Office</option>
-                <option value="Campus Facilities & Logistics">Campus Facilities & Logistics</option>
-                <option value="Student Affairs & Welfare">Student Affairs & Welfare</option>
-                <option value="Finance & Accounts Section">Finance & Accounts Section</option>
-                <option value="Information Technology & Systems">Information Technology & Systems</option>
-                <option value="Other">Other</option>
+                <option value="Academic Administration" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Academic Administration') ? 'selected' : (!formData?.adminDepartment ? 'selected' : '') %>>Academic Administration</option>
+                <option value="Examination Cell" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Examination Cell') ? 'selected' : '' %>>Examination Cell</option>
+                <option value="Registrar Office" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Registrar Office') ? 'selected' : '' %>>Registrar Office</option>
+                <option value="Campus Facilities & Logistics" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Campus Facilities & Logistics') ? 'selected' : '' %>>Campus Facilities & Logistics</option>
+                <option value="Student Affairs & Welfare" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Student Affairs & Welfare') ? 'selected' : '' %>>Student Affairs & Welfare</option>
+                <option value="Finance & Accounts Section" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Finance & Accounts Section') ? 'selected' : '' %>>Finance & Accounts Section</option>
+                <option value="Information Technology & Systems" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Information Technology & Systems') ? 'selected' : '' %>>Information Technology & Systems</option>
+                <option value="Other" <%= (typeof formData !== 'undefined' && formData.adminDepartment === 'Other') ? 'selected' : '' %>>Other</option>
               </select>
             </div>
 
@@ -624,6 +631,15 @@
     if (!/[a-z]/.test(password)) return showError('Password must contain at least one lowercase letter (a-z).');
     if (!/[0-9]/.test(password)) return showError('Password must contain at least one numeric digit (0-9).');
     if (password !== confirmPassword) return showError('Passwords do not match. Please verify your password confirmation.');
+
+    // Prevent duplicate submission & show loading indicator
+    const submitBtn = document.getElementById('submitRegBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.8';
+      submitBtn.style.cursor = 'not-allowed';
+      submitBtn.innerHTML = '<svg style="animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> Provisioning Account...';
+    }
 
     return true;
   }
