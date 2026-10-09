@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const dotenv = require('dotenv');
@@ -32,12 +33,21 @@ const adminController = require('./controllers/adminController');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// View Engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../views'));
+// Trust reverse proxy (Vercel, Cloudflare, AWS) for secure cookies and headers
+app.set('trust proxy', 1);
 
-// Static Assets
-app.use(express.static(path.join(__dirname, '../public')));
+// View Engine with robust fallback resolution
+const viewsDir = fs.existsSync(path.join(__dirname, '../views'))
+  ? path.join(__dirname, '../views')
+  : path.join(process.cwd(), 'views');
+app.set('view engine', 'ejs');
+app.set('views', viewsDir);
+
+// Static Assets with robust fallback resolution
+const publicDir = fs.existsSync(path.join(__dirname, '../public'))
+  ? path.join(__dirname, '../public')
+  : path.join(process.cwd(), 'public');
+app.use(express.static(publicDir));
 
 // Body Parsers & Cookies
 app.use(express.json());
@@ -56,6 +66,54 @@ app.use(
     }
   })
 );
+
+// Server Initialization & Lifecycle Engine (Vercel Serverless + Standalone Support)
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+let initPromise = null;
+async function initializeApp() {
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    try {
+      try {
+        await sequelize.query('ALTER TABLE users ADD COLUMN phone VARCHAR(255);');
+      } catch (e) {}
+      try {
+        await sequelize.query('ALTER TABLE users ADD COLUMN designation VARCHAR(255);');
+      } catch (e) {}
+      try {
+        await sequelize.query('ALTER TABLE users ADD COLUMN adminId VARCHAR(255);');
+      } catch (e) {}
+
+      await seedDatabase();
+      await seedResources();
+      if (isSupabaseConfigured) {
+        await ensureStorageBuckets();
+      }
+      if (!isServerless) {
+        initCronJobs();
+      }
+    } catch (error) {
+      console.warn('[CAMPUS AI Init Note]:', error.message);
+    }
+  })();
+  return initPromise;
+}
+
+// In serverless cold starts, trigger init immediately in background
+if (isServerless) {
+  initializeApp();
+}
+
+// Ensure database/app initialization completes before processing requests
+app.use(async (req, res, next) => {
+  try {
+    await initializeApp();
+  } catch (initErr) {
+    console.warn('[CAMPUS AI Request Init Warning]:', initErr.message);
+  }
+  next();
+});
 
 // Global Authentication & View State Middleware
 app.use(authenticate);
@@ -128,26 +186,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Server Initialization
-async function startServer() {
-  try {
-    try {
-      await sequelize.query('ALTER TABLE users ADD COLUMN phone VARCHAR(255);');
-    } catch (e) {}
-    try {
-      await sequelize.query('ALTER TABLE users ADD COLUMN designation VARCHAR(255);');
-    } catch (e) {}
-    try {
-      await sequelize.query('ALTER TABLE users ADD COLUMN adminId VARCHAR(255);');
-    } catch (e) {}
-
-    await seedDatabase();
-    await seedResources();
-    if (isSupabaseConfigured) {
-      await ensureStorageBuckets();
-    }
-    initCronJobs();
-
+if (!isServerless && require.main === module) {
+  // Standalone server mode (local development / container)
+  initializeApp().then(() => {
     app.listen(PORT, () => {
       console.log(`====================================================`);
       console.log(`  CAMPUS AI — Intelligent Digital Campus Ecosystem   `);
@@ -157,9 +198,8 @@ async function startServer() {
       console.log(`  Default Student: student@campusai.edu / student123  `);
       console.log(`====================================================`);
     });
-  } catch (error) {
-    console.error('Failed to start CAMPUS AI server:', error);
-  }
+  });
 }
 
-startServer();
+// Export Express application for Vercel Serverless Functions
+module.exports = app;
