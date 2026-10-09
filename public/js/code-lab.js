@@ -17,6 +17,7 @@
   let isExecuting = false;
   let isDirty = false;
   let lastGeneratedCode = '';
+  let lastGeneratedLanguage = 'python';
 
   const STARTER_TEMPLATES = window.__STARTER_TEMPLATES || {
     python: `# Python 3 Starter\n# Write, Run, Learn, Improve.\n\nn = int(input())\nprint(f"Square of {n} is: {n * n}")\n`,
@@ -417,20 +418,136 @@
     const modal = document.getElementById('solutionResultModal');
     if (!modal) return;
 
-    document.getElementById('solModalLangBadge').textContent = data.language.toUpperCase();
-    document.getElementById('solModalModeBadge').textContent = (data.mode || 'learn').toUpperCase() + ' MODE';
-    document.getElementById('solModalCodeBlock').textContent = data.code;
-    document.getElementById('solModalExplanation').textContent = data.explanation;
-    document.getElementById('solModalApproach').textContent = data.approach;
-    document.getElementById('solModalComplexity').textContent = `Time: ${data.time_complexity} | Space: ${data.space_complexity}`;
-    document.getElementById('solModalExampleInput').textContent = data.example_input;
-    document.getElementById('solModalExampleOutput').textContent = data.example_output;
+    const titleEl = document.getElementById('solModalTitle');
+    if (titleEl) titleEl.textContent = data.title || 'Generated Solution';
+
+    const langBadge = document.getElementById('solModalLangBadge');
+    if (langBadge) langBadge.textContent = (data.language || currentLanguage).toUpperCase();
+
+    const taskTypeBadge = document.getElementById('solModalTaskTypeBadge');
+    if (taskTypeBadge) {
+      taskTypeBadge.textContent = (data.task_type || 'code_generation').replace(/_/g, ' ').toUpperCase();
+    }
+
+    const modeBadge = document.getElementById('solModalModeBadge');
+    if (modeBadge) modeBadge.textContent = (data.mode || 'learn').toUpperCase() + ' MODE';
+
+    // Section 7: Telemetry & Verification Badge & Banner
+    const verifyBadge = document.getElementById('solModalVerifyBadge');
+    const verifyBanner = document.getElementById('solModalVerifyBanner');
+    const v = data.verification || {};
+
+    if (v.status === 'tested_and_passed' || v.status === 'repaired_and_passed') {
+      if (verifyBadge) {
+        verifyBadge.style.display = 'inline-block';
+        verifyBadge.style.background = '#059669';
+        verifyBadge.style.color = '#FFFFFF';
+        verifyBadge.textContent = `✓ VERIFIED (${v.execution_time_ms || 0}ms)`;
+      }
+      if (verifyBanner) {
+        verifyBanner.style.display = 'flex';
+        verifyBanner.style.background = '#ECFDF5';
+        verifyBanner.style.border = '1px solid #A7F3D0';
+        verifyBanner.style.color = '#065F46';
+        verifyBanner.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>✓</span>
+            <span><strong>Verified in Isolated Sandbox:</strong> Execution completed cleanly with exit code 0 (${v.execution_time_ms || 0} ms).</span>
+          </div>
+        `;
+      }
+    } else if (v.status === 'syntax_validated_unexecuted') {
+      if (verifyBadge) {
+        verifyBadge.style.display = 'inline-block';
+        verifyBadge.style.background = '#6366F1';
+        verifyBadge.style.color = '#FFFFFF';
+        verifyBadge.textContent = '⚡ SYNTAX VERIFIED';
+      }
+      if (verifyBanner) {
+        verifyBanner.style.display = 'flex';
+        verifyBanner.style.background = '#EEF2FF';
+        verifyBanner.style.border = '1px solid #C7D2FE';
+        verifyBanner.style.color = '#3730A3';
+        verifyBanner.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>⚡</span>
+            <span>${escapeHtml(v.note || 'Static language syntax and structural checks passed.')}</span>
+          </div>
+        `;
+      }
+    } else if (v.status === 'execution_failed') {
+      if (verifyBadge) {
+        verifyBadge.style.display = 'inline-block';
+        verifyBadge.style.background = '#DC2626';
+        verifyBadge.style.color = '#FFFFFF';
+        verifyBadge.textContent = '⚠️ RUNTIME WARNING';
+      }
+      if (verifyBanner) {
+        verifyBanner.style.display = 'flex';
+        verifyBanner.style.background = '#FEF2F2';
+        verifyBanner.style.border = '1px solid #FECACA';
+        verifyBanner.style.color = '#991B1B';
+        verifyBanner.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>⚠️</span>
+            <span><strong>Execution Warning:</strong> ${escapeHtml(v.stderr || 'Sandbox runtime error reported.')}</span>
+          </div>
+        `;
+      }
+    } else {
+      if (verifyBadge) verifyBadge.style.display = 'none';
+      if (verifyBanner) verifyBanner.style.display = 'none';
+    }
+
+    const codeBlock = document.getElementById('solModalCodeBlock');
+    if (codeBlock) codeBlock.textContent = data.code || '';
+
+    const charCount = document.getElementById('solModalCharCount');
+    if (charCount) charCount.textContent = `${(data.code || '').split('\n').length} lines | ${(data.code || '').length} chars`;
+
+    const expEl = document.getElementById('solModalExplanation');
+    if (expEl) expEl.textContent = data.explanation || '';
+
+    // Approach breakdown
+    const approachEl = document.getElementById('solModalApproach');
+    if (approachEl) {
+      if (Array.isArray(data.approach)) {
+        approachEl.innerHTML = `<ol style="margin: 0; padding-left: 1.25rem;">${data.approach.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>`;
+      } else {
+        approachEl.textContent = data.approach || '';
+      }
+    }
+
+    const compEl = document.getElementById('solModalComplexity');
+    if (compEl) {
+      const time = data.complexity?.time || data.time_complexity || 'O(n)';
+      const space = data.complexity?.space || data.space_complexity || 'O(1)';
+      compEl.textContent = `Time Complexity: ${time} | Space Complexity: ${space}`;
+    }
+
+    const inputEx = document.getElementById('solModalExampleInput');
+    if (inputEx) inputEx.textContent = data.input_example || data.example_input || '(Standard input)';
+
+    const outputEx = document.getElementById('solModalExampleOutput');
+    if (outputEx) outputEx.textContent = data.output_example || data.example_output || '(Standard output)';
 
     const edgeList = document.getElementById('solModalEdgeCases');
     if (edgeList) {
       edgeList.innerHTML = (data.edge_cases || []).map(e => `<li>${escapeHtml(e)}</li>`).join('');
     }
 
+    const assumptionsBox = document.getElementById('solModalAssumptionsBox');
+    const assumptionsList = document.getElementById('solModalAssumptions');
+    if (assumptionsBox && assumptionsList) {
+      if (data.assumptions && data.assumptions.length > 0) {
+        assumptionsList.innerHTML = data.assumptions.map(a => `<li>${escapeHtml(a)}</li>`).join('');
+        assumptionsBox.style.display = 'block';
+      } else {
+        assumptionsBox.style.display = 'none';
+      }
+    }
+
+    lastGeneratedLanguage = (data.language || currentLanguage).toLowerCase();
     modal.style.display = 'flex';
   }
 
@@ -438,6 +555,19 @@
     const modal = document.getElementById('solutionResultModal');
     if (modal) modal.style.display = 'none';
   };
+
+  function applyLanguageSync() {
+    if (lastGeneratedLanguage && lastGeneratedLanguage !== currentLanguage) {
+      currentLanguage = lastGeneratedLanguage;
+      const langSelect = document.getElementById('codeLanguageSelect');
+      const searchLangSelect = document.getElementById('searchLanguageSelect');
+      if (langSelect) langSelect.value = lastGeneratedLanguage;
+      if (searchLangSelect) searchLangSelect.value = lastGeneratedLanguage;
+      if (editorInstance && window.monaco) {
+        monaco.editor.setModelLanguage(editorInstance.getModel(), mapMonacoLanguage(currentLanguage));
+      }
+    }
+  }
 
   /**
    * Safe Insertion into Editor with Unsaved Changes Guard
@@ -450,6 +580,7 @@
       showInsertConflictModal(lastGeneratedCode);
     } else {
       setEditorCode(lastGeneratedCode);
+      applyLanguageSync();
       window.closeSolutionModal();
       showToast('Generated code inserted into editor.', 'success');
     }
@@ -461,6 +592,7 @@
       // Fallback prompt
       if (confirm('Your current editor has unsaved changes. Click OK to Replace existing code, or Cancel to append below.')) {
         setEditorCode(codeToInsert);
+        applyLanguageSync();
       } else {
         insertEditorCodeAtEnd(codeToInsert);
       }
@@ -472,6 +604,7 @@
 
     document.getElementById('btnConflictReplace').onclick = () => {
       setEditorCode(codeToInsert);
+      applyLanguageSync();
       modal.style.display = 'none';
       window.closeSolutionModal();
       showToast('Code replaced with generated solution.', 'success');

@@ -8,57 +8,84 @@ require('dotenv').config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
-// Candidate models in preference order (supports Gemini 3.8/3.5/2.5 series)
+// Candidate models in preference order (supports Gemini 3.8/3.7/3.6/2.5/2.0 series)
 const GEMINI_CANDIDATE_MODELS = [
   'gemini-3.8-flash',
-  'gemini-flash-latest',
-  'gemini-3.5-flash-lite',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
   'gemini-2.5-flash',
-  'gemini-2.5-flash-lite'
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
 ];
 
-// Generic helper to query Gemini REST API with multi-model fallback
-async function callGemini(prompt, systemInstruction = '') {
+/**
+ * Generic helper to query Gemini REST API with multi-model fallback,
+ * native system instructions, JSON mode, and graceful timeout handling.
+ */
+async function callGemini(prompt, systemInstruction = '', options = {}) {
   if (!GEMINI_API_KEY) {
     return null;
   }
+
+  const { jsonMode = false, temperature = 0.2, maxOutputTokens = 4096, timeoutMs = 12000 } = options;
 
   const payload = {
     contents: [
       {
         role: 'user',
-        parts: [{ text: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}` }]
+        parts: [{ text: prompt }]
       }
     ],
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 2048
+      temperature,
+      maxOutputTokens
     }
   };
 
+  if (systemInstruction) {
+    payload.system_instruction = {
+      parts: [{ text: systemInstruction }]
+    };
+  }
+
+  if (jsonMode) {
+    payload.generationConfig.responseMimeType = 'application/json';
+  }
+
   // Try candidate models in sequence
   for (const model of GEMINI_CANDIDATE_MODELS) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+
+      clearTimeout(timeout);
 
       if (response.ok) {
         const data = await response.json();
         const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (candidate) return candidate;
       } else {
-        // If 403 or 429, don't spam other models that share the same project quota
+        // If 403 (permission denied) or 429 (quota limit), don't spam other models that share the same project
         if (response.status === 403 || response.status === 429) {
           console.warn(`[CampusAI AI Layer] Gemini API notice (${model}): Status ${response.status}. Engaging local intelligence engine.`);
           break;
         }
       }
     } catch (err) {
-      console.warn(`[CampusAI AI Layer] Connection notice for ${model}:`, err.message);
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        console.warn(`[CampusAI AI Layer] Request timeout for ${model} after ${timeoutMs}ms.`);
+      } else {
+        console.warn(`[CampusAI AI Layer] Connection notice for ${model}:`, err.message);
+      }
     }
   }
 
