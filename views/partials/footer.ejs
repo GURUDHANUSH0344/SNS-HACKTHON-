@@ -12,6 +12,85 @@
   <!-- Global Toast Notification Container -->
   <%- include('toast') %>
 
+  <!-- Mobile Bottom Navigation Bar (< 768px Viewport) -->
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <% 
+      const role = currentUser.role || 'student';
+      const cPath = (typeof currentPath !== 'undefined') ? currentPath : '';
+    %>
+    <nav class="mobile-bottom-nav" aria-label="Mobile Bottom Navigation">
+      <% if (role === 'student') { %>
+        <!-- Student Mobile Navigation Links -->
+        <a href="/" class="mobile-nav-item <%= (cPath === '/' || cPath === '/student/dashboard') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">🏠</span>
+          <span class="mobile-nav-label">Home</span>
+        </a>
+        <a href="/exams" class="mobile-nav-item <%= (cPath.startsWith('/exams') || cPath.startsWith('/student/results')) ? 'active' : '' %>">
+          <span class="mobile-nav-icon">📊</span>
+          <span class="mobile-nav-label">Academics</span>
+        </a>
+        <a href="/ai/code-lab" class="mobile-nav-item <%= cPath.startsWith('/ai/code-lab') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">💻</span>
+          <span class="mobile-nav-label">Code Lab</span>
+        </a>
+        <a href="/problems" class="mobile-nav-item <%= cPath.startsWith('/problems') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">🛡️</span>
+          <span class="mobile-nav-label">Issues</span>
+        </a>
+        <a href="/student/profile" class="mobile-nav-item <%= cPath.startsWith('/student/profile') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">👤</span>
+          <span class="mobile-nav-label">Profile</span>
+        </a>
+
+      <% } else if (role === 'faculty' || role === 'teacher') { %>
+        <!-- Faculty Mobile Navigation Links -->
+        <a href="/" class="mobile-nav-item <%= (cPath === '/' || cPath === '/faculty/dashboard') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">🏠</span>
+          <span class="mobile-nav-label">Dashboard</span>
+        </a>
+        <a href="/exams" class="mobile-nav-item <%= cPath.startsWith('/exams') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">📝</span>
+          <span class="mobile-nav-label">Classes</span>
+        </a>
+        <a href="/ai/attendance-intelligence" class="mobile-nav-item <%= cPath.startsWith('/ai/attendance-intelligence') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">📅</span>
+          <span class="mobile-nav-label">Attendance</span>
+        </a>
+        <a href="/ai/early-warning" class="mobile-nav-item <%= cPath.startsWith('/ai/early-warning') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">⚠️</span>
+          <span class="mobile-nav-label">Insights</span>
+        </a>
+        <a href="/faculty/profile" class="mobile-nav-item <%= cPath.startsWith('/faculty/profile') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">👤</span>
+          <span class="mobile-nav-label">Profile</span>
+        </a>
+
+      <% } else { %>
+        <!-- Administrator Mobile Navigation Links -->
+        <a href="/" class="mobile-nav-item <%= (cPath === '/' || cPath === '/admin/dashboard') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">🏛️</span>
+          <span class="mobile-nav-label">Overview</span>
+        </a>
+        <a href="/problems" class="mobile-nav-item <%= cPath.startsWith('/problems') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">🚨</span>
+          <span class="mobile-nav-label">Issues</span>
+        </a>
+        <a href="/ai/resources" class="mobile-nav-item <%= (cPath.startsWith('/ai/resources') || cPath.startsWith('/resources')) ? 'active' : '' %>">
+          <span class="mobile-nav-icon">⚡</span>
+          <span class="mobile-nav-label">Resources</span>
+        </a>
+        <a href="/ai/admin-analytics" class="mobile-nav-item <%= cPath.startsWith('/ai/admin-analytics') ? 'active' : '' %>">
+          <span class="mobile-nav-icon">📈</span>
+          <span class="mobile-nav-label">Analytics</span>
+        </a>
+        <button type="button" class="mobile-nav-item mobile-nav-btn" onclick="toggleMobileSidebar()" aria-label="Open Full Menu">
+          <span class="mobile-nav-icon">☰</span>
+          <span class="mobile-nav-label">More</span>
+        </button>
+      <% } %>
+    </nav>
+  <% } %>
+
   <!-- Core JavaScript Bundles -->
   <script src="/js/main.js"></script>
   <script src="/js/fees_ui.js"></script>

@@ -3,10 +3,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Mobile Sidebar Backdrop Handler
-  const sidebar = document.getElementById('appSidebar');
-
-  // Create mobile backdrop if not present
+  // 1. Mobile Sidebar Drawer Handler
   let mobileBackdrop = document.querySelector('.mobile-sidebar-backdrop');
   if (!mobileBackdrop) {
     mobileBackdrop = document.createElement('div');
@@ -14,12 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(mobileBackdrop);
   }
 
-  if (mobileBackdrop && sidebar) {
+  if (mobileBackdrop) {
     mobileBackdrop.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      mobileBackdrop.classList.remove('active');
+      closeMobileSidebar();
     });
   }
+
+  // Auto-close mobile drawer on desktop resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 992) {
+      closeMobileSidebar();
+    }
+  });
 
   // 2. Close User Profile Dropdown on Outside Click
   document.addEventListener('click', (e) => {
@@ -268,11 +271,54 @@ function showToast(message, type = 'info') {
   }, 3500);
 }
 
+// --------------------------------------------------------------------------
+// MOBILE SIDEBAR DRAWER ENGINE
+// --------------------------------------------------------------------------
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  if (sidebar && sidebar.classList.contains('open')) {
+    closeMobileSidebar();
+  } else {
+    openMobileSidebar();
+  }
+}
+
+function openMobileSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  let backdrop = document.querySelector('.mobile-sidebar-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.className = 'mobile-sidebar-backdrop';
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', closeMobileSidebar);
+  }
+  if (sidebar) {
+    sidebar.classList.add('open');
+    if (backdrop) backdrop.classList.add('active');
+    document.body.classList.add('sidebar-drawer-active');
+  }
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  const backdrop = document.querySelector('.mobile-sidebar-backdrop');
+  if (sidebar) {
+    sidebar.classList.remove('open');
+  }
+  if (backdrop) {
+    backdrop.classList.remove('active');
+  }
+  document.body.classList.remove('sidebar-drawer-active');
+}
+
 // Expose globals for inline event handlers
 window.toggleTheme = toggleTheme;
 window.setTheme = setTheme;
 window.toggleSidebarCollapse = toggleSidebarCollapse;
 window.setSidebarCollapsed = setSidebarCollapsed;
+window.toggleMobileSidebar = toggleMobileSidebar;
+window.openMobileSidebar = openMobileSidebar;
+window.closeMobileSidebar = closeMobileSidebar;
 window.toggleUserDropdown = toggleUserDropdown;
 window.openSearchPalette = openSearchPalette;
 window.closeSearchPalette = closeSearchPalette;

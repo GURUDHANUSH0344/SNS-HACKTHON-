@@ -1,7 +1,14 @@
 <header class="top-navbar">
   <div class="nav-left">
+    <!-- Mobile Hamburger Drawer Trigger (Visible on <= 992px) -->
+    <button type="button" class="mobile-nav-toggle-btn" id="mobileNavToggleBtn" onclick="toggleMobileSidebar()" aria-label="Open Navigation Menu" title="Open Navigation Menu">
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+      <span class="hamburger-bar"></span>
+    </button>
+
     <!-- Global Search Bar with Ctrl+K Command Palette Trigger -->
-    <div class="nav-search" onclick="openSearchPalette()">
+    <div class="nav-search" onclick="openSearchPalette()" role="button" tabindex="0" aria-label="Open Global Search">
       <span class="nav-search-icon">🔍</span>
       <input 
         type="text" 

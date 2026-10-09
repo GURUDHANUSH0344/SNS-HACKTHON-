@@ -27,6 +27,13 @@
   gap: 1rem;
 }
 
+.codelab-banner-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .codelab-banner-left {
   display: flex;
   align-items: center;
@@ -570,21 +577,196 @@
   background: #F8FAFC;
 }
 
-/* Responsive Rules */
+/* ==========================================================================
+   RESPONSIVE AI CODE LAB ARCHITECTURE
+   Tablet (768px-1024px) • Mobile (360px-767px)
+   ========================================================================== */
+
+/* Universal editor horizontal scroll isolation (never scroll outer page) */
+.codelab-editor-panel {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.codelab-monaco-mount, 
+.codelab-fallback-editor {
+  max-width: 100%;
+  overflow-x: auto;
+  font-size: 13.5px !important;
+  line-height: 1.5;
+}
+
+.codelab-terminal-view {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px !important;
+}
+
+.codelab-tab-bar {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.codelab-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.codelab-tab-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+}
+
 @media (max-width: 992px) {
   .codelab-ide-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  .codelab-monaco-mount, .codelab-fallback-editor {
-    height: 420px;
+
+  .codelab-monaco-mount, 
+  .codelab-fallback-editor {
+    height: 380px;
+    min-height: 320px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .codelab-banner {
+    padding: 1rem 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .codelab-ai-action-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .codelab-ai-btn {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 640px) {
+  .codelab-banner-actions {
+    width: 100%;
+  }
+
+  .codelab-banner-actions .codelab-action-btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 42px;
+  }
+
+  .codelab-search-card {
     padding: 1rem;
   }
+
+  .codelab-search-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .codelab-search-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .codelab-search-input-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .codelab-search-input {
+    min-width: 100% !important;
+    width: 100%;
+    font-size: 16px !important; /* Prevents auto-zoom on iOS */
+  }
+
+  .codelab-select-pill,
+  .codelab-btn-generate {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .codelab-editor-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .codelab-editor-title-box {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .codelab-session-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .codelab-editor-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    gap: 0.35rem;
+  }
+
+  .codelab-action-btn {
+    min-height: 40px;
+    padding: 0.4rem 0.25rem;
+    justify-content: center;
+    font-size: 0.72rem;
+  }
+
+  .codelab-tutor-box {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .codelab-tutor-input {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  .codelab-tutor-box .btn {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 440px) {
   .codelab-ai-action-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+
+  .codelab-ai-btn {
+    min-height: 44px;
+    font-size: 0.75rem;
+  }
+
+  .codelab-editor-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .codelab-monaco-mount, 
+  .codelab-fallback-editor {
+    height: 320px;
   }
 }
