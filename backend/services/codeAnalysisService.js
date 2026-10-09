@@ -428,34 +428,20 @@ async function saveAnalysis(analysisType, promptContext, result, sessionId, user
   } catch (e) {}
 }
 
+const { findCatalogSolution, generateDynamicSolution } = require('./codeKnowledgeBase');
+
 /**
  * Fallback helpers when LLM is unavailable
  */
 function getFallbackCodeGeneration(query, lang, diff, mode) {
-  let template = '';
-  if (lang === 'c') {
-    template = `#include <stdio.h>\n\nint main() {\n    // Solution for: ${query}\n    printf("Result computed successfully.\\n");\n    return 0;\n}`;
-  } else if (lang === 'cpp') {
-    template = `#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    // Solution for: ${query}\n    cout << "CampusAI C++ Solution Ready" << endl;\n    return 0;\n}`;
-  } else if (lang === 'java') {
-    template = `public class Main {\n    public static void main(String[] args) {\n        // Solution for: ${query}\n        System.out.println("CampusAI Java Solution Ready");\n    }\n}`;
-  } else if (lang === 'javascript') {
-    template = `// Solution for: ${query}\nfunction solution() {\n  console.log("CampusAI JavaScript Solution Ready");\n}\nsolution();`;
-  } else {
-    template = `# Solution for: ${query}\ndef solution():\n    print("CampusAI Python Solution Ready")\n\nif __name__ == "__main__":\n    solution()`;
+  // 1. Check verified algorithmic catalog
+  const catalogMatch = findCatalogSolution(query, lang);
+  if (catalogMatch) {
+    return catalogMatch;
   }
 
-  return {
-    code: template,
-    explanation: `Generated template algorithm for ${query} in ${lang.toUpperCase()}.`,
-    approach: 'Standard procedural implementation with structured error handling.',
-    example_input: 'Standard array or integer input',
-    example_output: 'Correctly formatted output value',
-    time_complexity: 'O(n)',
-    space_complexity: 'O(1)',
-    edge_cases: ['Empty collection', 'Negative numbers', 'Max numeric range'],
-    hints: ['Check array bounds', 'Use proper types', 'Test with edge values']
-  };
+  // 2. Dynamic structured generator
+  return generateDynamicSolution(query, lang, diff, mode);
 }
 
 function getFallbackExplanation(code, lang) {

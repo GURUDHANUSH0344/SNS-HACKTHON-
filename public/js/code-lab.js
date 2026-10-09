@@ -410,6 +410,9 @@
     }
   }
 
+  // Expose globally for recent search chips and external triggers
+  window.triggerCodeGeneration = triggerCodeGeneration;
+
   function renderGeneratedSolutionModal(data) {
     const modal = document.getElementById('solutionResultModal');
     if (!modal) return;

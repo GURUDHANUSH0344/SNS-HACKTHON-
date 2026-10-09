@@ -8,45 +8,61 @@ require('dotenv').config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
-// Generic helper to query Gemini REST API if key exists
+// Candidate models in preference order (supports Gemini 3.8/3.5/2.5 series)
+const GEMINI_CANDIDATE_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-flash-latest',
+  'gemini-3.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite'
+];
+
+// Generic helper to query Gemini REST API with multi-model fallback
 async function callGemini(prompt, systemInstruction = '') {
   if (!GEMINI_API_KEY) {
     return null;
   }
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-    const payload = {
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}` }]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2048
+  const payload = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}` }]
       }
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      console.warn(`Gemini API returned status ${response.status}`);
-      return null;
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048
     }
+  };
 
-    const data = await response.json();
-    const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return candidate || null;
-  } catch (err) {
-    console.warn('Gemini API invocation error, using campus heuristic intelligence:', err.message);
-    return null;
+  // Try candidate models in sequence
+  for (const model of GEMINI_CANDIDATE_MODELS) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (candidate) return candidate;
+      } else {
+        // If 403 or 429, don't spam other models that share the same project quota
+        if (response.status === 403 || response.status === 429) {
+          console.warn(`[CampusAI AI Layer] Gemini API notice (${model}): Status ${response.status}. Engaging local intelligence engine.`);
+          break;
+        }
+      }
+    } catch (err) {
+      console.warn(`[CampusAI AI Layer] Connection notice for ${model}:`, err.message);
+    }
   }
+
+  return null;
 }
 
 // 1. CampusAI Student Chatbot
